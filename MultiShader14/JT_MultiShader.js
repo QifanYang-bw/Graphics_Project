@@ -88,8 +88,8 @@ var g_lastMS = Date.now();			// Timestamp (in milliseconds) for our
                                 // Set & used by moveAll() fcn to update all
                                 // time-varying params for our webGL drawings.
   // All time-dependent params (you can add more!)
-var g_angleNow0  =  0.0; 			  // Current rotation angle, in degrees.
-var g_angleRate0 = 45.0;				// Rotation angle rate, in degrees/second.
+// var g_angleNow0  =  0.0; 			  // Current rotation angle, in degrees.
+// var g_angleRate0 = 45.0;				// Rotation angle rate, in degrees/second.
                                 //---------------
 var g_angleNow1  = 100.0;       // current angle, in degrees
 var g_angleRate1 =  95.0;        // rotation angle rate, degrees/sec
@@ -100,13 +100,13 @@ var g_angleNow2  =  0.0; 			  // Current rotation angle, in degrees.
 var g_angleRate2 = -62.0;				// Rotation angle rate, in degrees/second.
 
                                 //---------------
-var g_posNow0 =  0.0;           // current position
-var g_posRate0 = 0.6;           // position change rate, in distance/second.
+// var g_posNow0 =  0.0;           // current position
+// var g_posRate0 = 0.6;           // position change rate, in distance/second.
 // var g_posMax0 =  0.5;           // max, min allowed for g_posNow;
 // var g_posMin0 = -0.5;           
                                 // ------------------
-var g_posNow1 =  0.0;           // current position
-var g_posRate1 = 0.5;           // position change rate, in distance/second.
+// var g_posNow1 =  0.0;           // current position
+// var g_posRate1 = 0.5;           // position change rate, in distance/second.
 // var g_posMax1 =  1.0;           // max, min allowed positions
 // var g_posMin1 = -1.0;
                                 //---------------
@@ -115,6 +115,19 @@ var g_posRate1 = 0.5;           // position change rate, in distance/second.
 var g_show0 = 1;								// 0==Show, 1==Hide VBO0 contents on-screen.
 var g_show1 = 1;								// 	"					"			VBO1		"				"				" 
 var g_show2 = 1;                //  "         "     VBO2    "       "       "
+
+// Camera Constants
+var vertexPool = {};
+var curBufferLength;
+// ------------------------------------------------
+var currentAngle = 0.0;
+var eyeX = 5.001, eyeY = 0.001, eyeZ = .501; 
+var tempEyeX = 0, tempEyeY = 0, tempEyeZ = .5;  
+var lookAtX = 0.0, lookAtY = 0.0, lookAtZ = 0.0;
+var tX = 0, tY = 0, tZ = 0;
+var STEP1 = 0.15;
+var STEP2 = 0.01;
+var JUDGE = -1;
 
 function main() {
 //=============================================================================
@@ -142,7 +155,7 @@ function main() {
   }
 
   window.addEventListener("keydown", myKeyDown, false);
-  
+
   // Initialize each of our 'vboBox' objects: 
   worldBox.init(gl);		// VBO + shaders + uniforms + attribs for our 3D world,
                         // including ground-plane,                       
@@ -269,27 +282,39 @@ function drawAll() {
   // Clear on-screen HTML-5 <canvas> object:
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-    gl.viewport(0,0,g_canvas.width/2, g_canvas.height);
-    var ModelMatrix = new Matrix4();
-    
-    // FOV = 30 deg
-    ModelMatrix.perspective(30.0,   // FOVY: top-to-bottom vertical image angle, in degrees
-                           (0.5*g_canvas.width)/g_canvas.height,   // Image Aspect Ratio: camera lens width/height
-                           1.0,   // camera z-near distance (always positive; frustum begins at z = -znear)
-                        1000.0);  // camera z-far distance (always positive; frustum ends at z = -zfar)
-    
-    ModelMatrix.lookAt(eyeX + currentAngle * tempEyeX*0.01,  eyeY,  eyeZ,     // center of projection
-                      lookAtX + currentAngle * tX * 0.01, lookAtY, lookAtZ,  // look-at point 
-                      0.0,  1,  0);
+  var originalMatrixDepth = getMatrixDepth();
 
-var b4Draw = Date.now();
-var b4Wait = b4Draw - g_lastMS;
+  // Perspective Cam
+  gl.viewport(0,0,g_canvasID.width, g_canvasID.height);
+  var mMatrix = new Matrix4();
+  
+  // FOV = 30 deg
+  mMatrix.perspective(30.0,   // FOVY: top-to-bottom vertical image angle, in degrees
+                         (g_canvasID.width)/g_canvasID.height,   // Image Aspect Ratio: camera lens width/height
+                         1.0,   // camera z-near distance (always positive; frustum begins at z = -znear)
+                      1000.0);  // camera z-far distance (always positive; frustum ends at z = -zfar)
+  
+  mMatrix.lookAt(eyeX,  eyeY,  eyeZ,     // center of projection
+                    lookAtX, lookAtY, lookAtZ,  // look-at point 
+                    0,  0,  1);
+
+  // ModelMatrix.setTranslate(0, 0, 0);
+
+  // console.log('stack', __cuon_matrix_mod_stack);
+  pushMatrix(mMatrix);
+
+  var b4Draw = Date.now();
+  var b4Wait = b4Draw - g_lastMS;
+  // console.log('orig',mMatrix);
+
 
 	if(g_show0 == 1) {	// IF user didn't press HTML button to 'hide' VBO0:
 	  worldBox.switchToMe();  // Set WebGL to render from this VBObox.
 		worldBox.adjust();		  // Send new values for uniforms to the GPU, and
 		worldBox.draw();			  // draw our VBO's contents using our shaders.
   }
+
+  // console.log('chang', __cuon_matrix_mod_stack);
   if(g_show1 == 1) { // IF user didn't press HTML button to 'hide' VBO1:
     part1Box.switchToMe();  // Set WebGL to render from this VBObox.
   	part1Box.adjust();		  // Send new values for uniforms to the GPU, and
@@ -305,6 +330,9 @@ var aftrDraw = Date.now();
 var drawWait = aftrDraw - b4Draw;
 console.log("wait b4 draw: ", b4Wait, "drawWait: ", drawWait, "mSec");
 */
+
+  clearMatrix(originalMatrixDepth);
+
 }
 
 function VBO0toggle() {
@@ -375,8 +403,7 @@ function myKeyDown(kev) {
   switch(kev.code) {
 
     case "KeyD": { // d
-            u = new Vector3();
-            u = new Float32Array([0, 1, 0]);
+            u = new Float32Array([0, 0, 1]);
             
             l = new Vector3();
             
@@ -402,8 +429,7 @@ function myKeyDown(kev) {
             break;
         }
     case "KeyA": { // a
-            u = new Vector3();
-            u = new Float32Array([0, 1, 0]);
+            u = new Float32Array([0, 0, 1]);
             
             l = new Vector3();
             l[0] = dx/temp; l[1] = dy/temp; l[2] = dz/temp;
@@ -458,7 +484,7 @@ function myKeyDown(kev) {
 
             break;
     } 
-    case "KeyJ":{ 
+    case "KeyI":{ 
           if(JUDGE==-1 || JUDGE==0)
             {
               THETA_NOW = theta0 + STEP2 * lookAtHorizontalMultiplier;          
@@ -475,7 +501,7 @@ function myKeyDown(kev) {
             
             break;
         }
-    case "KeyL": {
+    case "KeyK": {
             if (JUDGE == -1 || JUDGE == 0)
             {
               THETA_NOW = theta0 - STEP2 * lookAtHorizontalMultiplier;
@@ -493,7 +519,7 @@ function myKeyDown(kev) {
             break;
     }
       
-    case "KeyI":{ 
+    case "KeyJ":{ 
             if (JUDGE==-1 || JUDGE==1)
             {  
               PHI_NOW = phi0 + STEP2;
@@ -510,7 +536,7 @@ function myKeyDown(kev) {
 
             break;
     }
-    case "KeyK":{ 
+    case "KeyL":{ 
             if(JUDGE == -1 || JUDGE == 1)
             { 
               PHI_NOW = phi0 - STEP2;  

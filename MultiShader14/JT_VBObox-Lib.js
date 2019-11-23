@@ -555,8 +555,10 @@ VBObox0.prototype.adjust = function() {
   						'.adjust() call you needed to call this.switchToMe()!!');
   }  
 
-
-  this.ModelMat.setTranslate( 0.4, -0.4, 0.0);  
+  this.ModelMat = popMatrix();
+  pushMatrix(this.ModelMat);
+  
+  this.ModelMat.translate( 0, -0, 0.0);  
   this.ModelMat.scale(0.1, 0.1, 0.1);       // shrink by 10X:
   //  Transfer new uniforms' values to the GPU:-------------
   // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
@@ -919,12 +921,13 @@ VBObox1.prototype.adjust = function() {
   						'.adjust() call you needed to call this.switchToMe()!!');
   }
 
-
+  this.ModelMatrix = popMatrix();
+  pushMatrix(this.ModelMatrix);
   
-  this.ModelMatrix.setTranslate( 0.0, 0.0, 0.0); // 'set' means DISCARD old matrix,
+  this.ModelMatrix.translate( 0.0, 0.0, 0.0); // 'set' means DISCARD old matrix,
               // (drawing axes centered in CVV), and then make new
               // drawing axes moved to the lower-left corner of CVV.
-  this.ModelMatrix.scale(0.4, 0.4, 0.4);
+  this.ModelMatrix.scale(0.25, 0.25, 0.25);
               // Make it smaller:
   this.ModelMatrix.rotate(g_angleNow1 % 360.0, 1, 0, 1);  // Spin on XY diagonal axis
   this.ModelMatrix.rotate((g_angleNow1/3) % 360.0, -1,1,0); // and at different rate on -X,Y
@@ -1273,10 +1276,13 @@ VBObox2.prototype.adjust = function() {
   						'.adjust() call you needed to call this.switchToMe()!!');
   }
 
-  this.ModelMatrix.setTranslate( 0, 0, 0.5); // 'set' means DISCARD old matrix,
+  this.ModelMatrix = popMatrix();
+  pushMatrix(this.ModelMatrix);
+  
+  this.ModelMatrix.translate(0, 0, 0.5); // 'set' means DISCARD old matrix,
               // (drawing axes centered in CVV), and then make new
               // drawing axes moved to the lower-left corner of CVV.
-  this.ModelMatrix.scale(0.4, 0.4, 0.4);
+  this.ModelMatrix.scale(0.2, 0.2, 0.2);
               // Make it smaller:
   this.ModelMatrix.rotate(g_angleNow2 % 360.0, 0, 1, 1);  // 
   this.ModelMatrix.rotate((g_angleNow2/3) % 360.0, 1,-1,0); // 
