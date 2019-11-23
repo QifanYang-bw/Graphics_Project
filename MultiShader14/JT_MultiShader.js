@@ -93,8 +93,8 @@ var g_angleRate0 = 45.0;				// Rotation angle rate, in degrees/second.
                                 //---------------
 var g_angleNow1  = 100.0;       // current angle, in degrees
 var g_angleRate1 =  95.0;        // rotation angle rate, degrees/sec
-var g_angleMax1  = 150.0;       // max, min allowed angle, in degrees
-var g_angleMin1  =  60.0;
+// var g_angleMax1  = 150.0;       // max, min allowed angle, in degrees
+// var g_angleMin1  =  60.0;
                                 //---------------
 var g_angleNow2  =  0.0; 			  // Current rotation angle, in degrees.
 var g_angleRate2 = -62.0;				// Rotation angle rate, in degrees/second.
@@ -102,13 +102,13 @@ var g_angleRate2 = -62.0;				// Rotation angle rate, in degrees/second.
                                 //---------------
 var g_posNow0 =  0.0;           // current position
 var g_posRate0 = 0.6;           // position change rate, in distance/second.
-var g_posMax0 =  0.5;           // max, min allowed for g_posNow;
-var g_posMin0 = -0.5;           
+// var g_posMax0 =  0.5;           // max, min allowed for g_posNow;
+// var g_posMin0 = -0.5;           
                                 // ------------------
 var g_posNow1 =  0.0;           // current position
 var g_posRate1 = 0.5;           // position change rate, in distance/second.
-var g_posMax1 =  1.0;           // max, min allowed positions
-var g_posMin1 = -1.0;
+// var g_posMax1 =  1.0;           // max, min allowed positions
+// var g_posMin1 = -1.0;
                                 //---------------
 
 // For mouse/keyboard:------------------------
@@ -140,6 +140,9 @@ function main() {
     console.log('Failed to get the rendering context for WebGL');
     return;
   }
+
+  makeGroundGrid();
+  makeSphere2();
 
   // Initialize each of our 'vboBox' objects: 
   worldBox.init(gl);		// VBO + shaders + uniforms + attribs for our 3D world,
@@ -193,44 +196,74 @@ function timerAll() {
     // let's pretend that only a nominal 1/30th second passed:
     elapsedMS = 1000.0/30.0;
     }
+
+
   // Find new time-dependent parameters using the current or elapsed time:
   // Continuous rotation:
-  g_angleNow0 = g_angleNow0 + (g_angleRate0 * elapsedMS) / 1000.0;
-  g_angleNow1 = g_angleNow1 + (g_angleRate1 * elapsedMS) / 1000.0;
-  g_angleNow2 = g_angleNow2 + (g_angleRate2 * elapsedMS) / 1000.0;
-  g_angleNow0 %= 360.0;   // keep angle >=0.0 and <360.0 degrees  
-  g_angleNow1 %= 360.0;   
-  g_angleNow2 %= 360.0;
-  if(g_angleNow1 > g_angleMax1) { // above the max?
-    g_angleNow1 = g_angleMax1;    // move back down to the max, and
-    g_angleRate1 = -g_angleRate1; // reverse direction of change.
-    }
-  else if(g_angleNow1 < g_angleMin1) {  // below the min?
-    g_angleNow1 = g_angleMin1;    // move back up to the min, and
-    g_angleRate1 = -g_angleRate1;
-    }
+  // g_angleNow0 = g_angleNow0 + (g_angleRate0 * elapsedMS) / 1000.0;
+  g_angleNow1 = g_angleNow1 + (g_angleRate1 * elapsedMS) / 4000.0;
+  // g_angleNow2 = g_angleNow2 + (g_angleRate2 * elapsedMS) / 1000.0;
+  // g_angleNow0 %= 360.0;   // keep angle >=0.0 and <360.0 degrees  
+  // g_angleNow1 %= 360.0;   
+  // g_angleNow2 %= 360.0;
+  // if(g_angleNow1 > g_angleMax1) { // above the max?
+  //   g_angleNow1 = g_angleMax1;    // move back down to the max, and
+  //   g_angleRate1 = -g_angleRate1; // reverse direction of change.
+  //   }
+  // else if(g_angleNow1 < g_angleMin1) {  // below the min?
+  //   g_angleNow1 = g_angleMin1;    // move back up to the min, and
+  //   g_angleRate1 = -g_angleRate1;
+  //   }
   // Continuous movement:
-  g_posNow0 += g_posRate0 * elapsedMS / 1000.0;
-  g_posNow1 += g_posRate1 * elapsedMS / 1000.0;
-  // apply position limits
-  if(g_posNow0 > g_posMax0) {   // above the max?
-    g_posNow0 = g_posMax0;      // move back down to the max, and
-    g_posRate0 = -g_posRate0;   // reverse direction of change
-    }
-  else if(g_posNow0 < g_posMin0) {  // or below the min? 
-    g_posNow0 = g_posMin0;      // move back up to the min, and
-    g_posRate0 = -g_posRate0;   // reverse direction of change.
-    }
-  if(g_posNow1 > g_posMax1) {   // above the max?
-    g_posNow1 = g_posMax1;      // move back down to the max, and
-    g_posRate1 = -g_posRate1;   // reverse direction of change
-    }
-  else if(g_posNow1 < g_posMin1) {  // or below the min? 
-    g_posNow1 = g_posMin1;      // move back up to the min, and
-    g_posRate1 = -g_posRate1;   // reverse direction of change.
-    }
+  // g_posNow0 += g_posRate0 * elapsedMS / 1000.0;
+  // g_posNow1 += g_posRate1 * elapsedMS / 1000.0;
+  // // apply position limits
+  // if(g_posNow0 > g_posMax0) {   // above the max?
+  //   g_posNow0 = g_posMax0;      // move back down to the max, and
+  //   g_posRate0 = -g_posRate0;   // reverse direction of change
+  //   }
+  // else if(g_posNow0 < g_posMin0) {  // or below the min? 
+  //   g_posNow0 = g_posMin0;      // move back up to the min, and
+  //   g_posRate0 = -g_posRate0;   // reverse direction of change.
+  //   }
+  // if(g_posNow1 > g_posMax1) {   // above the max?
+  //   g_posNow1 = g_posMax1;      // move back down to the max, and
+  //   g_posRate1 = -g_posRate1;   // reverse direction of change
+  //   }
+  // else if(g_posNow1 < g_posMin1) {  // or below the min? 
+  //   g_posNow1 = g_posMin1;      // move back up to the min, and
+  //   g_posRate1 = -g_posRate1;   // reverse direction of change.
+  //   }
 
 }
+
+
+function animate(angle) {
+//==============================================================================
+  // Calculate the elapsed time
+  var nowMS = Date.now();             // current time (in milliseconds)
+  var elapsedMS = nowMS - g_lastMS;   // 
+  g_lastMS = nowMS;                   // update for next webGL drawing.
+  
+  if(elapsedMS > 1000.0) {            
+    // Browsers won't re-draw 'canvas' element that isn't visible on-screen 
+    // (user chose a different browser tab, etc.); when users make the browser
+    // window visible again our resulting 'elapsedMS' value has gotten HUGE.
+    // Instead of allowing a HUGE change in all our time-dependent parameters,
+    // let's pretend that only a nominal 1/30th second passed:
+    elapsedMS = 1000.0/30.0;
+    }
+
+  // Update the current rotation angle (adjusted by the elapsed time)
+  //  limit the angle to move smoothly between +20 and -85 degrees:
+//  if(angle >  120.0 && ANGLE_STEP > 0) ANGLE_STEP = -ANGLE_STEP;
+//  if(angle < -120.0 && ANGLE_STEP < 0) ANGLE_STEP = -ANGLE_STEP;
+  
+  var newAngle = angle + (ANGLE_STEP * elapsed) / 1000.0;
+  return newAngle %= 360*3;   // keep angle finite; use 3*360 so that we can
+                              // use multiples of angle/3 on different axes.
+}
+
 
 function drawAll() {
 //=============================================================================
