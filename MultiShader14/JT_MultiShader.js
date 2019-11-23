@@ -141,9 +141,8 @@ function main() {
     return;
   }
 
-  makeGroundGrid();
-  makeSphere2();
-
+  window.addEventListener("keydown", myKeyDown, false);
+  
   // Initialize each of our 'vboBox' objects: 
   worldBox.init(gl);		// VBO + shaders + uniforms + attribs for our 3D world,
                         // including ground-plane,                       
@@ -202,7 +201,7 @@ function timerAll() {
   // Continuous rotation:
   // g_angleNow0 = g_angleNow0 + (g_angleRate0 * elapsedMS) / 1000.0;
   g_angleNow1 = g_angleNow1 + (g_angleRate1 * elapsedMS) / 4000.0;
-  // g_angleNow2 = g_angleNow2 + (g_angleRate2 * elapsedMS) / 1000.0;
+  g_angleNow2 = g_angleNow2 + (g_angleRate2 * elapsedMS) / 3000.0;
   // g_angleNow0 %= 360.0;   // keep angle >=0.0 and <360.0 degrees  
   // g_angleNow1 %= 360.0;   
   // g_angleNow2 %= 360.0;
@@ -270,6 +269,19 @@ function drawAll() {
   // Clear on-screen HTML-5 <canvas> object:
   gl.clear(gl.COLOR_BUFFER_BIT);
 
+    gl.viewport(0,0,g_canvas.width/2, g_canvas.height);
+    var ModelMatrix = new Matrix4();
+    
+    // FOV = 30 deg
+    ModelMatrix.perspective(30.0,   // FOVY: top-to-bottom vertical image angle, in degrees
+                           (0.5*g_canvas.width)/g_canvas.height,   // Image Aspect Ratio: camera lens width/height
+                           1.0,   // camera z-near distance (always positive; frustum begins at z = -znear)
+                        1000.0);  // camera z-far distance (always positive; frustum ends at z = -zfar)
+    
+    ModelMatrix.lookAt(eyeX + currentAngle * tempEyeX*0.01,  eyeY,  eyeZ,     // center of projection
+                      lookAtX + currentAngle * tX * 0.01, lookAtY, lookAtZ,  // look-at point 
+                      0.0,  1,  0);
+
 var b4Draw = Date.now();
 var b4Wait = b4Draw - g_lastMS;
 
@@ -317,4 +329,202 @@ function VBO2toggle() {
   if(g_show2 != 1) g_show2 = 1;			// show,
   else g_show2 = 0;									// hide.
   console.log('g_show2: '+g_show2);
+}
+
+function myKeyDown(kev) {
+//===============================================================================
+// Called when user presses down ANY key on the keyboard;
+//
+// For a light, easy explanation of keyboard events in JavaScript,
+// see:    http://www.kirupa.com/html5/keyboard_events_in_javascript.htm
+// For a thorough explanation of a mess of JavaScript keyboard event handling,
+// see:    http://javascript.info/tutorial/keyboard-events
+//
+// NOTE: Mozilla deprecated the 'keypress' event entirely, and in the
+//        'keydown' event deprecated several read-only properties I used
+//        previously, including kev.charCode, kev.keyCode. 
+//        Revised 2/2019:  use kev.key and kev.code instead.
+//
+// Report EVERYTHING in console:
+  console.log(  "--kev.code:",    kev.code,   "\t\t--kev.key:",     kev.key, 
+              "\n--kev.ctrlKey:", kev.ctrlKey,  "\t--kev.shiftKey:",kev.shiftKey,
+              "\n--kev.altKey:",  kev.altKey,   "\t--kev.metaKey:", kev.metaKey);
+
+// // and report EVERYTHING on webpage:
+//   document.getElementById('KeyDownResult'); // clear old results
+//   // key details:
+//   document.getElementById('KeyModResult' );
+  document.getElementById('KeyModResult' ).innerHTML = 
+        "   --kev.code:"+kev.code   +"      --kev.key:"+kev.key+
+    "<br>--kev.ctrlKey:"+kev.ctrlKey+" --kev.shiftKey:"+kev.shiftKey+
+    "<br>--kev.altKey:"+kev.altKey +"  --kev.metaKey:"+kev.metaKey;
+
+  var dx = lookAtX - eyeX, dy = lookAtY - eyeY, dz = lookAtZ - eyeZ;
+  var temp = Math.sqrt(dx*dx + dy*dy + dz*dz);
+  var lzx = Math.sqrt(dx*dx+dz*dz);
+  var sin_phi = lzx / temp;
+
+  var theta0 = Math.PI -  Math.asin(dx/lzx);
+  var cos_theta = dz / Math.sqrt(dx*dx + dz*dz);
+  var sin_theta = dx / Math.sqrt(dx*dx + dz*dz);
+
+  var lookAtHorizontalMultiplier = 2.0;
+
+  var phi0 = Math.asin(dy/temp);
+ 
+  switch(kev.code) {
+
+    case "KeyD": { // d
+            u = new Vector3();
+            u = new Float32Array([0, 1, 0]);
+            
+            l = new Vector3();
+            
+            l[0] = dx/temp; l[1] = dy/temp; l[2] = dz/temp;
+
+            t = new Vector3();
+            t[0] = u[1]*l[2] - u[2]*l[1];
+            t[1] = u[2]*l[0] - u[0]*l[2];
+            t[2] = u[0]*l[1] - u[1]*l[0];
+
+            temp2 = Math.sqrt(t[0]*t[0] + t[1]*t[1] + t[2]*t[2]);
+
+            t[0] /= temp2; t[1] /= temp2; t[2] /= temp2;
+
+            eyeX -= STEP1 * t[0];
+            eyeY -= STEP1 * t[1];
+            eyeZ -= STEP1 * t[2];
+
+            lookAtX -= STEP1 * t[0];
+            lookAtY -= STEP1 * t[1];
+            lookAtZ -= STEP1 * t[2];
+
+            break;
+        }
+    case "KeyA": { // a
+            u = new Vector3();
+            u = new Float32Array([0, 1, 0]);
+            
+            l = new Vector3();
+            l[0] = dx/temp; l[1] = dy/temp; l[2] = dz/temp;
+
+            t = new Vector3();
+            t[0] = u[1]*l[2] - u[2]*l[1];
+            t[1] = u[2]*l[0] - u[0]*l[2];
+            t[2] = u[0]*l[1] - u[1]*l[0];
+
+            temp2 = Math.sqrt(t[0]*t[0] + t[1]*t[1] + t[2]*t[2]);
+
+            t[0] /= temp2; t[1] /= temp2; t[2] /= temp2;
+
+            eyeX += STEP1 * t[0];
+            eyeY += STEP1 * t[1];
+            eyeZ += STEP1 * t[2];
+
+            lookAtX += STEP1 * t[0];
+            lookAtY += STEP1 * t[1];
+            lookAtZ += STEP1 * t[2];
+
+            break;
+      
+    } 
+    case "KeyW": 
+           { 
+            t = new Vector3();
+            t[0] = dx/temp; t[1] = dy/temp; t[2] = dz/temp;
+
+            eyeX += STEP1 * t[0];
+            eyeY += STEP1 * t[1];
+            eyeZ += STEP1 * t[2];
+
+            lookAtX += STEP1 * t[0];
+            lookAtY += STEP1 * t[1];
+            lookAtZ += STEP1 * t[2];
+
+            break;
+
+    } 
+    case "KeyS": { 
+            t = new Vector3();
+            t[0] = dx/temp; t[1] = dy/temp; t[2] = dz/temp;
+            
+            eyeX -= STEP1 * t[0];
+            eyeY -= STEP1 * t[1];
+            eyeZ -= STEP1 * t[2];
+
+            lookAtX -= STEP1 * t[0];
+            lookAtY -= STEP1 * t[1];
+            lookAtZ -= STEP1 * t[2];
+
+            break;
+    } 
+    case "KeyJ":{ 
+          if(JUDGE==-1 || JUDGE==0)
+            {
+              THETA_NOW = theta0 + STEP2 * lookAtHorizontalMultiplier;          
+              JUDGE = 1;
+            }
+            else
+            {
+              THETA_NOW += STEP2 * lookAtHorizontalMultiplier;
+            }
+
+            lookAtY = dy + eyeY;
+            lookAtX = temp * sin_phi * Math.sin(THETA_NOW) + eyeX;
+            lookAtZ = temp * sin_phi * Math.cos(THETA_NOW) + eyeZ;
+            
+            break;
+        }
+    case "KeyL": {
+            if (JUDGE == -1 || JUDGE == 0)
+            {
+              THETA_NOW = theta0 - STEP2 * lookAtHorizontalMultiplier;
+              JUDGE = 1;
+            }
+            else
+            {
+              THETA_NOW -= STEP2 * lookAtHorizontalMultiplier;
+            }
+
+            lookAtY = dy + eyeY;
+            lookAtX = temp * sin_phi * Math.sin(THETA_NOW) + eyeX;
+            lookAtZ = temp * sin_phi * Math.cos(THETA_NOW) + eyeZ;
+
+            break;
+    }
+      
+    case "KeyI":{ 
+            if (JUDGE==-1 || JUDGE==1)
+            {  
+              PHI_NOW = phi0 + STEP2;
+              JUDGE = 0;
+            }
+            else
+            {
+              PHI_NOW += STEP2;
+            }
+
+            lookAtY = temp * Math.sin(PHI_NOW) + eyeY;
+            lookAtX = temp * Math.cos(PHI_NOW) * sin_theta + eyeX;
+            lookAtZ = temp * Math.cos(PHI_NOW) * cos_theta + eyeZ;
+
+            break;
+    }
+    case "KeyK":{ 
+            if(JUDGE == -1 || JUDGE == 1)
+            { 
+              PHI_NOW = phi0 - STEP2;  
+              JUDGE = 0;
+            }
+            else
+            {
+              PHI_NOW -= STEP2;
+            }
+            lookAtY = temp * Math.sin(PHI_NOW) + eyeY;
+            lookAtX = temp * Math.cos(PHI_NOW) * sin_theta + eyeX;
+            lookAtZ = temp * Math.cos(PHI_NOW) * cos_theta + eyeZ;
+
+            break;
+    }
+  }
 }
