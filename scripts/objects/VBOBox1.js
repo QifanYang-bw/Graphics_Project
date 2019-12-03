@@ -1,3 +1,91 @@
+//23456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_
+//
+// PointLightedSphere_perFragment.js (c) 2012 matsuda and kanda
+// MODIFIED for EECS 351-1, Northwestern Univ. Jack Tumblin:
+//
+//    Completed the Blinn-Phong lighting model: add emissive and specular:
+//    --Ke, Ka, Kd, Ks: K==Reflectance; emissive, ambient, diffuse, specular.
+//    --Kshiny: specular exponent for 'shinyness'.
+//    --Ia, Id, Is:   I==Illumination:          ambient, diffuse, specular.
+//    -- Implemented Blinn-Phong 'half-angle' specular term (from class)
+//
+//  JTSecondLight_perFragment.js:
+//  Version 01: Same as JTPointBlinnPhongSphere_perFragment.js
+//  Version 02: add mouse, keyboard callbacks with on-screen display.
+//  Version 03: add 'draw()' function (ugly!) to call whenever we need to 
+//              re-draw the screen (e.g. after mouse-drag). Convert all 'handles'
+//              for GPU storage locations (supplied by gl.getUniformLocation() 
+//              to GLOBAL vars to prevent large argument lists for the draw() 
+//              fcn.  Apply K_shiny uniform in GLSL using pow() fcn; test it
+//              with K_shiny values of 10 and 100.
+//  Version 04: eliminate arguments to 'draw()' function by converting them to
+//              'global' variables; then we can call 'draw()' from any fcn.  
+//              In keypress() fcn, make s/S keys decrease/increase K_shiny by 1
+//              and call the 'draw()' function to show result on-screen. 
+//              Add JavaScript global variables for existing lamp0 uniforms;
+//              (Temporarily) use mouse-drag to modify lamp0 position & redraw;
+//              and make 'clear' button re-set the lamp0 position.
+//              Note how AWKWARDLY mouse-dragging moved the light: can we fix it?
+//  Version 05: YES! first, lets' understand what we see on-screen:
+//            --Prev. versions set Camera position to (6,0,0) in world coords,  
+//              (eyeWorldPos[] value set in main()), aimed at origin, 'up'==+z.
+//              THUS camera's x,y axes are aligned with world-space y,z axes! 
+//            --Prev. versions set lamp0Pos[] to world coords (6,6,0) in main(),
+//              thus it's on-screen location is center-right.  Our mouseDrag() 
+//              code causes left/right drag to adjust lamp0 +/-x in world space, 
+//              (towards/away from camera), and up/down drag adjusts lamp0 +/-y 
+//              (left/right on-screen). No wonder the result looks weird!
+//              FIX IT: change mouseDrag() to map x,y drags to lamp0 y,z values
+//                instead of x,y.  We will keep x value fixed at +6, so that
+//                mouse-drags move lamp0 in the same yz plane as the camera.
+//                ALSO -- change lamp0 position to better-looking (6,5,5). 
+//                (don't forget HTML button handler 'clearDrag()' fcn below).
+//  Version 06: Create GLSL struct 'LampT' & prove we can use it as a uniform
+//              that affects Vertex Shader's on-screen result (see version0 6a)
+//              In Fragment shader, create a 1-element array of 'LampT' structs 
+//              and use it to replace the uniforms for 'lamp0' (see version 06b)
+//              --Best way to create a JavaScript 'Lamp' object?
+//              --Best way to transfer contents to GLSL? GLSL 'Lamp' struct?
+//                (try: https://www.opengl.org/wiki/Uniform_%28GLSL%29 
+//              --find 'struct Thingy', note how uniforms set struct contents
+//                in sequential locations, and/or fill them as arrays...
+// (try: http://wiki.lwjgl.org/wiki/GLSL_Tutorial:_Communicating_with_Shaders)
+//  Version 07: In JavaScript, use the 'materials_Ayerdi.js' library to replace 
+//              the individual 'matl0_K...' global vars with a new 'materials' 
+//              object made of MATL_RED_PLASTIC called 'matl0' (ver. 07a).
+//              Update keypress() so that the 'm' key will change material of
+//              the sphere; move the uniform-setting for lights and materials
+//              out of main() and into the 'draw()' function: (ver. 07b)
+//  Version 08: In JavaScript, create a 'lightsT' object to hold all data 
+//              needed or used by one light source of any kind; put all its
+//              functions in a separate 'lights-JT.js' library (see HTML file:
+//              load this 'library' along with cuon-matrix-quat.js, etc).
+//              Create just one lightsT object called 'lamp0' to test.
+//  Version 09: Create GLSL struct 'MatlT'; test it. Create a 1-element array of 
+//              'MatlT' structs in the Fragment Shader and  use element 0 of 
+//              that array to replace our misc reflectance uniforms.
+//  Version 10: In Javascript, improve 'Materials_Ayerdi.js': add a set() member
+//              function to choose new materials without discarding the object 
+//              (as we did for the 'm' key in keypress()).  Then add new member
+//              variables to hold uniform's GPU locations (as in LightsT);
+//              to eliminate the last materials global vars. (Ver 10b)
+//
+//  STILL TO DO:
+//              --add direction/spotlight mode (Lengyel, Section 7.2.4 pg. 160)
+//              by adding a 'look-at' point member.
+//              --add a user-interface to aim the spotlight ('glass cylinder'?) 
+//              --add a new light that recreates the Version 01 light at (6,6,0).
+//              --add user-interface to (fixed) light at (6,6,0).  How shall we 
+//              organize MULTIPLE lights (up to 8?) by object-oriented methods?
+
+//      --Further object-oriented re-organizing: can we make objects for 
+//        User-Interface? Shapes? Cameras? Textures? Animation? can we fit them 
+//        all inside just a 'Scene' object, and use that as our program's
+//        one-and-only global variable?
+
+//=============================================================================
+// Vertex shader program
+//=============================================================================
 
 
 //=============================================================================
