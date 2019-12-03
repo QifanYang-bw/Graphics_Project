@@ -122,7 +122,7 @@ var curBufferLength;
 // ------------------------------------------------
 var currentAngle = 0.0;
 var eyeX = 5.001, eyeY = 0.001, eyeZ = .501; 
-var tempEyeX = 0, tempEyeY = 0, tempEyeZ = .5;  
+// var tempEyeX = 0, tempEyeY = 0, tempEyeZ = .5;  
 var lookAtX = 0.0, lookAtY = 0.0, lookAtZ = 0.0;
 var tX = 0, tY = 0, tZ = 0;
 var STEP1 = 0.15;
