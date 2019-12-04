@@ -71,7 +71,7 @@ function makeGroundGrid() {
 
 function makeSphere(positions, indices, offset = 0) { // Create a sphere
 //-------------------------------------------------------------------------------
-  var SPHERE_DIV = 24; //default: 13.  JT: try others: 11,9,7,5,4,3,2,
+  var SPHERE_DIV = 9; //default: 13.  JT: try others: 11,9,7,5,4,3,2,
 
   var i, ai, si, ci;
   var j, aj, sj, cj;
