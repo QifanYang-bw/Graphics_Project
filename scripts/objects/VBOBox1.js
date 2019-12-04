@@ -87,29 +87,16 @@
 // Vertex shader program
 //=============================================================================
 
-//  Global vars that hold GPU locations for 'uniform' variables.
-//    -- For 3D camera and transforms:
-var uLoc_eyePosWorld  = false;
-var uLoc_ModelMatrix  = false;
-var uLoc_MvpMatrix    = false;
-var uLoc_NormalMatrix = false;
-
 // global vars that contain the values we send thru those uniforms,
 //  ... for our camera:
 var eyePosWorld = new Float32Array(3);  // x,y,z in world coords
 
-//  ... for our first light source:   (stays false if never initialized)
-var lamp0 = new LightsT();
-
   // ... for our first material:
 var matlSel= MATL_RED_PLASTIC;        // see keypress(): 'm' key changes matlSel
 var matl0 = new Material(matlSel);  
 //  ... for our first light source:   (stays false if never initialized)
-var lamp0 = new LightsT();
+var lamp0 = new LightsT(); 
 
-  // ... for our first material:
-var matlSel= MATL_RED_PLASTIC;        // see keypress(): 'm' key changes matlSel
-var matl0 = new Material(matlSel);  
 
 //=============================================================================
 //=============================================================================
@@ -323,16 +310,18 @@ function VBObox1() {
 
 	this.shaderLoc;								// GPU Location for compiled Shader-program  
 	                            	// set by compile/link of VERT_SRC and FRAG_SRC.
-								          //------Attribute locations in our shaders:
-	// this.a_Pos1Loc;							  // GPU location: shader 'a_Pos1' attribute
-	// this.a_Nor1Loc;							// GPU location: shader 'a_Colr1' attribute
-	// this.a_PtSiz1Loc;							// GPU location: shader 'a_PtSiz1' attribute
 	
 	            //---------------------- Uniform locations &values in our shaders
   	//  ... for our transforms:
   this.modelMatrix  = new Matrix4();  // Model matrix
   this.mvpMatrix    = new Matrix4();  // Model-view-projection matrix
   this.normalMatrix = new Matrix4();  // Transformation matrix for normals
+
+  //    -- For 3D camera and transforms:
+  this.uLoc_eyePosWorld  = false;
+  this.uLoc_ModelMatrix  = false;
+  this.uLoc_MvpMatrix    = false;
+  this.uLoc_NormalMatrix = false;
 };
 
 
@@ -408,16 +397,12 @@ VBObox1.prototype.init = function() {
   // (positions, colors, normals, etc), or 
   //	== "gl.ELEMENT_ARRAY_BUFFER" : the VBO holds indices only; integer values 
   // that each select one vertex from a vertex array stored in another VBO.
-  // gl.bindBuffer(gl.ARRAY_BUFFER,	      // GLenum 'target' for this GPU buffer 
-  // 								this.vboLoc);				  // the ID# the GPU uses for this buffer.
   											
   // Fill the GPU's newly-created VBO object with the vertex data we stored in
   //  our 'vboContents' member (JavaScript Float32Array object).
   //  (Recall gl.bufferData() will evoke GPU's memory allocation & management: 
   //	 use gl.bufferSubData() to modify VBO contents without changing VBO size)
-  // gl.bufferData(gl.ARRAY_BUFFER, 			  // GLenum target(same as 'bindBuffer()')
- 	// 				 				this.vboContents, 		// JavaScript Float32Array
-  // 							 	gl.STATIC_DRAW);			// Usage hint.  
+
   //	The 'hint' helps GPU allocate its shared memory for best speed & efficiency
   //	(see OpenGL ES specification for more info).  Your choices are:
   //		--STATIC_DRAW is for vertex buffers rendered many times, but whose 
@@ -445,20 +430,13 @@ VBObox1.prototype.init = function() {
     return -1;  // error exit.
   }
 
-  // this.a_PtSiz1Loc = gl.getAttribLocation(this.shaderLoc, 'a_PtSiz1');
-  // if(this.a_PtSiz1Loc < 0) {
-  //   console.log(this.constructor.name + 
-	 //    					'.init() failed to get the GPU location of attribute a_PtSiz1');
-	 //  return -1;	// error exit.
-  // }
+
   // c2) Find All Uniforms:-----------------------------------------------------
-  //Get GPU storage location for each uniform var used in our shader programs: 
-  // this.u_ModelMatrixLoc = gl.getUniformLocation(this.shaderLoc, 'u_ModelMatrix');
-  // if (!this.u_ModelMatrixLoc) { 
-  //   console.log(this.constructor.name + 
-  //   						'.init() failed to get GPU location for u_ModelMatrix uniform');
-  //   return;
-  // }
+  //
+  // Get GPU storage location for each uniform var used in our shader programs
+  // This step is applied later in switchtoMe() method in which the program
+  // this.shaderLoc is used.
+
 }
 
 VBObox1.prototype.switchToMe = function () {
@@ -512,12 +490,12 @@ VBObox1.prototype.switchToMe = function () {
 
     // Create, save the storage locations of uniform variables: ... for the scene
     // (Version 03: changed these to global vars (DANGER!) for use inside any func)
-    uLoc_eyePosWorld  = gl.getUniformLocation(gl.program, 'u_eyePosWorld');
-    uLoc_ModelMatrix  = gl.getUniformLocation(gl.program, 'u_ModelMatrix');
-    uLoc_MvpMatrix    = gl.getUniformLocation(gl.program, 'u_MvpMatrix');
-    uLoc_NormalMatrix = gl.getUniformLocation(gl.program, 'u_NormalMatrix');
-    if (!uLoc_eyePosWorld ||
-        !uLoc_ModelMatrix || !uLoc_MvpMatrix || !uLoc_NormalMatrix) {
+    this.uLoc_eyePosWorld  = gl.getUniformLocation(gl.program, 'u_eyePosWorld');
+    this.uLoc_ModelMatrix  = gl.getUniformLocation(gl.program, 'u_ModelMatrix');
+    this.uLoc_MvpMatrix    = gl.getUniformLocation(gl.program, 'u_MvpMatrix');
+    this.uLoc_NormalMatrix = gl.getUniformLocation(gl.program, 'u_NormalMatrix');
+    if (!this.uLoc_eyePosWorld ||
+        !this.uLoc_ModelMatrix || !this.uLoc_MvpMatrix || !this.uLoc_NormalMatrix) {
       console.log('Failed to get GPUs matrix storage locations');
       return;
       }
@@ -548,15 +526,8 @@ VBObox1.prototype.switchToMe = function () {
 
     // Position the camera in world coordinates:
     eyePosWorld.set([eyeX, eyeY, eyeZ]);
-    // console.log(uLoc_eyePosWorld);
-    gl.uniform3fv(uLoc_eyePosWorld, eyePosWorld);// use it to set our uniform
+    gl.uniform3fv(this.uLoc_eyePosWorld, eyePosWorld);// use it to set our uniform
     // (Note: uniform4fv() expects 4-element float32Array as its 2nd argument)
-    
-    // Init World-coord. position & colors of first light source in global vars;
-    lamp0.I_pos.elements.set( [6.0, 5.0, 5.0]);
-    lamp0.I_ambi.elements.set([0.4, 0.4, 0.4]);
-    lamp0.I_diff.elements.set([1.0, 1.0, 1.0]);
-    lamp0.I_spec.elements.set([1.0, 1.0, 1.0]);
 }
 
 VBObox1.prototype.isReady = function() {
@@ -572,11 +543,11 @@ var isOK = true;
     						'.isReady() false: shader program at this.shaderLoc not in use!');
     isOK = false;
   }
-  // if(gl.getParameter(gl.ARRAY_BUFFER_BINDING) != this.vboLoc) {
-  //     console.log(this.constructor.name + 
-  // 						'.isReady() false: vbo at this.vboLoc not in use!');
-  //   isOK = false;
-  // }
+  if(gl.getParameter(gl.ARRAY_BUFFER_BINDING) != this.norLoc) {
+      console.log(this.constructor.name + 
+  						'.isReady() false: vbo at this.norLoc not in use!');
+    isOK = false;
+  }
   return isOK;
 }
 
@@ -592,14 +563,10 @@ VBObox1.prototype.adjust = function() {
   }
 
   
-  this.modelMatrix.setTranslate(0, 0, 0.5); // 'set' means DISCARD old matrix,
+  this.modelMatrix.setTranslate(0, 0, 0.25); // 'set' means DISCARD old matrix,
               // (drawing axes centered in CVV), and then make new
               // drawing axes moved to the lower-left corner of CVV.
-  this.modelMatrix.scale(0.2, 0.2, 0.2);
-
-    //----------------For the Matrices: find the model matrix:
-  this.modelMatrix.setRotate(90, 0, 1, 0); // Rotate around the y-axis
-
+  this.modelMatrix.scale(0.25, 0.25, 0.25);
 
   this.mvpMatrix = popMatrix();
   pushMatrix(this.mvpMatrix);
@@ -611,9 +578,9 @@ VBObox1.prototype.adjust = function() {
   this.normalMatrix.transpose();
 
   // Send the new matrix values to their locations in the GPU:
-  gl.uniformMatrix4fv(uLoc_ModelMatrix, false, this.modelMatrix.elements);
-  gl.uniformMatrix4fv(uLoc_MvpMatrix, false, this.mvpMatrix.elements);
-  gl.uniformMatrix4fv(uLoc_NormalMatrix, false, this.normalMatrix.elements);
+  gl.uniformMatrix4fv(this.uLoc_ModelMatrix, false, this.modelMatrix.elements);
+  gl.uniformMatrix4fv(this.uLoc_MvpMatrix, false, this.mvpMatrix.elements);
+  gl.uniformMatrix4fv(this.uLoc_NormalMatrix, false, this.normalMatrix.elements);
 
 }
 

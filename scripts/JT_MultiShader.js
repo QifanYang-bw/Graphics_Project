@@ -121,9 +121,9 @@ var vertexPool = {};
 var curBufferLength;
 // ------------------------------------------------
 var currentAngle = 0.0;
-var eyeX = 5.001, eyeY = 0.001, eyeZ = .501; 
+var eyeX = 0.001, eyeY = 5.001, eyeZ = .501; 
 // var tempEyeX = 0, tempEyeY = 0, tempEyeZ = .5;  
-var lookAtX = 0.0, lookAtY = 0.0, lookAtZ = 0.0;
+var lookAtX = 0.0, lookAtY = 0.0, lookAtZ = 0.25;
 var tX = 0, tY = 0, tZ = 0;
 var STEP1 = 0.15;
 var STEP2 = 0.01;
@@ -155,6 +155,9 @@ function main() {
   }
 
   window.addEventListener("keydown", myKeyDown, false);
+
+  // Set up Light sources before all VBO Boxes
+  setLights();
 
   // Initialize each of our 'vboBox' objects: 
   worldBox.init(gl);		// VBO + shaders + uniforms + attribs for our 3D world,
@@ -192,6 +195,14 @@ function main() {
     };
   //------------------------------------
   tick();                       // do it again!
+}
+
+function setLights() {
+    // Init World-coord. position & colors of first light source in global vars;
+    lamp0.I_pos.elements.set( [6.0, 5.0, 5.0]);
+    lamp0.I_ambi.elements.set([0.4, 0.4, 0.4]);
+    lamp0.I_diff.elements.set([1.0, 1.0, 1.0]);
+    lamp0.I_spec.elements.set([1.0, 1.0, 1.0]);
 }
 
 function timerAll() {
@@ -309,7 +320,7 @@ function drawAll() {
   // console.log('orig',mMatrix);
 
 
-	if(g_show0 == 0) {	// IF user didn't press HTML button to 'hide' VBO0:
+	if(g_show0 == 1) {	// IF user didn't press HTML button to 'hide' VBO0:
 	  worldBox.switchToMe();  // Set WebGL to render from this VBObox.
 		worldBox.adjust();		  // Send new values for uniforms to the GPU, and
 		worldBox.draw();			  // draw our VBO's contents using our shaders.
