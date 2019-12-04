@@ -556,6 +556,7 @@ VBObox1.prototype.switchToMe = function () {
     lamp0.I_pos.elements.set( [6.0, 5.0, 5.0]);
     lamp0.I_ambi.elements.set([0.4, 0.4, 0.4]);
     lamp0.I_diff.elements.set([1.0, 1.0, 1.0]);
+    lamp0.I_spec.elements.set([1.0, 1.0, 1.0]);
 }
 
 VBObox1.prototype.isReady = function() {
