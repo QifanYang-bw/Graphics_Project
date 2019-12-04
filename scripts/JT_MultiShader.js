@@ -80,7 +80,7 @@ var g_canvasID;									// HTML-5 'canvas' element ID#
 // For multiple VBOs & Shaders:-----------------
 worldBox = new VBObox0();		  // Holds VBO & shaders for 3D 'world' ground-plane grid, etc;
 part1Box = new VBObox1();		  // "  "  for first set of custom-shaded 3D parts
-part2Box = new VBObox2();     // "  "  for second set of custom-shaded 3D parts
+// part2Box = new VBObox2();     // "  "  for second set of custom-shaded 3D parts
 
 // For animation:---------------------
 var g_lastMS = Date.now();			// Timestamp (in milliseconds) for our 
@@ -160,9 +160,10 @@ function main() {
   worldBox.init(gl);		// VBO + shaders + uniforms + attribs for our 3D world,
                         // including ground-plane,                       
   part1Box.init(gl);		//  "		"		"  for 1st kind of shading & lighting
-	part2Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
+	// part2Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
 	
   gl.clearColor(0.2, 0.2, 0.2, 1);	  // RGBA color for clearing <canvas>
+  gl.enable(gl.DEPTH_TEST);
   
   // ==============ANIMATION=============
   // Quick tutorials on synchronous, real-time animation in JavaScript/HTML-5: 
@@ -280,7 +281,7 @@ function animate(angle) {
 function drawAll() {
 //=============================================================================
   // Clear on-screen HTML-5 <canvas> object:
-  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   var originalMatrixDepth = getMatrixDepth();
 
@@ -290,13 +291,13 @@ function drawAll() {
   
   // FOV = 30 deg
   mMatrix.perspective(30.0,   // FOVY: top-to-bottom vertical image angle, in degrees
-                         (g_canvasID.width)/g_canvasID.height,   // Image Aspect Ratio: camera lens width/height
-                         1.0,   // camera z-near distance (always positive; frustum begins at z = -znear)
+                      (g_canvasID.width)/g_canvasID.height,   // Image Aspect Ratio: camera lens width/height
+                      1.0,   // camera z-near distance (always positive; frustum begins at z = -znear)
                       1000.0);  // camera z-far distance (always positive; frustum ends at z = -zfar)
   
   mMatrix.lookAt(eyeX,  eyeY,  eyeZ,     // center of projection
-                    lookAtX, lookAtY, lookAtZ,  // look-at point 
-                    0,  0,  1);
+                 lookAtX, lookAtY, lookAtZ,  // look-at point 
+                 0,  0,  1);
 
   // ModelMatrix.setTranslate(0, 0, 0);
 
@@ -308,7 +309,7 @@ function drawAll() {
   // console.log('orig',mMatrix);
 
 
-	if(g_show0 == 1) {	// IF user didn't press HTML button to 'hide' VBO0:
+	if(g_show0 == 0) {	// IF user didn't press HTML button to 'hide' VBO0:
 	  worldBox.switchToMe();  // Set WebGL to render from this VBObox.
 		worldBox.adjust();		  // Send new values for uniforms to the GPU, and
 		worldBox.draw();			  // draw our VBO's contents using our shaders.
@@ -319,12 +320,12 @@ function drawAll() {
     part1Box.switchToMe();  // Set WebGL to render from this VBObox.
   	part1Box.adjust();		  // Send new values for uniforms to the GPU, and
   	part1Box.draw();			  // draw our VBO's contents using our shaders.
-	  }
-	if(g_show2 == 1) { // IF user didn't press HTML button to 'hide' VBO2:
-	  part2Box.switchToMe();  // Set WebGL to render from this VBObox.
-  	part2Box.adjust();		  // Send new values for uniforms to the GPU, and
-  	part2Box.draw();			  // draw our VBO's contents using our shaders.
-  	}
+	}
+	// if(g_show2 == 1) { // IF user didn't press HTML button to 'hide' VBO2:
+	//   part2Box.switchToMe();  // Set WebGL to render from this VBObox.
+ //  	part2Box.adjust();		  // Send new values for uniforms to the GPU, and
+ //  	part2Box.draw();			  // draw our VBO's contents using our shaders.
+ //  	}
 /* // ?How slow is our own code?  	
 var aftrDraw = Date.now();
 var drawWait = aftrDraw - b4Draw;
@@ -551,6 +552,26 @@ function myKeyDown(kev) {
             lookAtZ = temp * Math.cos(PHI_NOW) * cos_theta + eyeZ;
 
             break;
+    }
+    case "KeyM":{
+      matlSel = (matlSel +1)%MATL_DEFAULT;  // see materials_Ayerdi.js for list
+      matl0.setMatl(matlSel);               // set new material reflectances,
+      // draw();                               // re-draw on-screen image.
+      break;
+    }
+    case "KeyX": {
+      matl0.K_shiny += 1.0;               // INCREASE shinyness, but with a
+      if(matl0.K_shiny > 128.0) matl0.K_shiny = 128.0;  // upper limit.
+      console.log('UPPERcase S: ++K_shiny ==', matl0.K_shiny,'\n'); 
+      // draw();                           // re-draw on-screen image.
+      break;
+    }
+    case "KeyZ": {
+      matl0.K_shiny += -1.0;                // DECREASE shinyness, but with a
+      if(matl0.K_shiny < 1.0) matl0.K_shiny = 1.0;    // lower limit.
+      console.log('lowercase s: --K_shiny ==', matl0.K_shiny, '\n');
+      // draw();                         // re-draw on-screen image.
+      break;
     }
   }
 }
