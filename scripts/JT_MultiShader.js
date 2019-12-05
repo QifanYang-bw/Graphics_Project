@@ -122,7 +122,7 @@ var curBufferLength;
 // ------------------------------------------------
 var currentAngle = 0.0;
 var eyeX = 0.001, eyeY = 5.001, eyeZ = .501; 
-// var tempEyeX = 0, tempEyeY = 0, tempEyeZ = .5;  
+// var focalEyeX = 0, focalEyeY = 0, focalEyeZ = .5;  
 var lookAtX = 0.0, lookAtY = 0.0, lookAtZ = 0.25;
 var tX = 0, tY = 0, tZ = 0;
 var STEP1 = 0.15;
@@ -400,17 +400,17 @@ function myKeyDown(kev) {
     "<br>--kev.altKey:"+kev.altKey +"  --kev.metaKey:"+kev.metaKey;
 
   var dx = lookAtX - eyeX, dy = lookAtY - eyeY, dz = lookAtZ - eyeZ;
-  var temp = Math.sqrt(dx*dx + dy*dy + dz*dz);
-  var lzx = Math.sqrt(dx*dx+dz*dz);
-  var sin_phi = lzx / temp;
+  var focal = Math.sqrt(dx*dx + dy*dy + dz*dz);
+  var lzx = Math.sqrt(dx*dx+dy*dy);
+  var sin_phi = lzx / focal;
 
   var theta0 = Math.PI -  Math.asin(dx/lzx);
-  var cos_theta = dz / Math.sqrt(dx*dx + dz*dz);
-  var sin_theta = dx / Math.sqrt(dx*dx + dz*dz);
+  var cos_theta = dy / Math.sqrt(dx*dx + dy*dy);
+  var sin_theta = dx / Math.sqrt(dx*dx + dy*dy);
 
   var lookAtHorizontalMultiplier = 2.0;
 
-  var phi0 = Math.asin(dy/temp);
+  var phi0 = Math.asin(dz/focal);
  
   switch(kev.code) {
 
@@ -419,7 +419,7 @@ function myKeyDown(kev) {
             
             l = new Vector3();
             
-            l[0] = dx/temp; l[1] = dy/temp; l[2] = dz/temp;
+            l[0] = dx/focal; l[1] = dy/focal; l[2] = dz/focal;
 
             t = new Vector3();
             t[0] = u[1]*l[2] - u[2]*l[1];
@@ -444,7 +444,7 @@ function myKeyDown(kev) {
             u = new Float32Array([0, 0, 1]);
             
             l = new Vector3();
-            l[0] = dx/temp; l[1] = dy/temp; l[2] = dz/temp;
+            l[0] = dx/focal; l[1] = dy/focal; l[2] = dz/focal;
 
             t = new Vector3();
             t[0] = u[1]*l[2] - u[2]*l[1];
@@ -469,7 +469,7 @@ function myKeyDown(kev) {
     case "KeyW": 
            { 
             t = new Vector3();
-            t[0] = dx/temp; t[1] = dy/temp; t[2] = dz/temp;
+            t[0] = dx/focal; t[1] = dy/focal; t[2] = dz/focal;
 
             eyeX += STEP1 * t[0];
             eyeY += STEP1 * t[1];
@@ -484,7 +484,7 @@ function myKeyDown(kev) {
     } 
     case "KeyS": { 
             t = new Vector3();
-            t[0] = dx/temp; t[1] = dy/temp; t[2] = dz/temp;
+            t[0] = dx/focal; t[1] = dy/focal; t[2] = dz/focal;
             
             eyeX -= STEP1 * t[0];
             eyeY -= STEP1 * t[1];
@@ -496,7 +496,7 @@ function myKeyDown(kev) {
 
             break;
     } 
-    case "KeyI":{ 
+    case "KeyJ":{ 
           if(JUDGE==-1 || JUDGE==0)
             {
               THETA_NOW = theta0 + STEP2 * lookAtHorizontalMultiplier;          
@@ -504,16 +504,16 @@ function myKeyDown(kev) {
             }
             else
             {
-              THETA_NOW += STEP2 * lookAtHorizontalMultiplier;
+              THETA_NOW -= STEP2 * lookAtHorizontalMultiplier;
             }
 
-            lookAtY = dy + eyeY;
-            lookAtX = temp * sin_phi * Math.sin(THETA_NOW) + eyeX;
-            lookAtZ = temp * sin_phi * Math.cos(THETA_NOW) + eyeZ;
+            lookAtX = focal * sin_phi * Math.sin(THETA_NOW) + eyeX;
+            lookAtY = focal * sin_phi * Math.cos(THETA_NOW) + eyeY;
+            lookAtZ = dz + eyeZ;
             
             break;
-        }
-    case "KeyK": {
+    }
+    case "KeyL": {
             if (JUDGE == -1 || JUDGE == 0)
             {
               THETA_NOW = theta0 - STEP2 * lookAtHorizontalMultiplier;
@@ -521,17 +521,17 @@ function myKeyDown(kev) {
             }
             else
             {
-              THETA_NOW -= STEP2 * lookAtHorizontalMultiplier;
+              THETA_NOW += STEP2 * lookAtHorizontalMultiplier;
             }
 
-            lookAtY = dy + eyeY;
-            lookAtX = temp * sin_phi * Math.sin(THETA_NOW) + eyeX;
-            lookAtZ = temp * sin_phi * Math.cos(THETA_NOW) + eyeZ;
+            lookAtX = focal * sin_phi * Math.sin(THETA_NOW) + eyeX;
+            lookAtY = focal * sin_phi * Math.cos(THETA_NOW) + eyeY;
+            lookAtZ = dz + eyeZ;
 
             break;
     }
       
-    case "KeyJ":{ 
+    case "KeyI":{ 
             if (JUDGE==-1 || JUDGE==1)
             {  
               PHI_NOW = phi0 + STEP2;
@@ -542,13 +542,13 @@ function myKeyDown(kev) {
               PHI_NOW += STEP2;
             }
 
-            lookAtY = temp * Math.sin(PHI_NOW) + eyeY;
-            lookAtX = temp * Math.cos(PHI_NOW) * sin_theta + eyeX;
-            lookAtZ = temp * Math.cos(PHI_NOW) * cos_theta + eyeZ;
+            lookAtX = focal * Math.cos(PHI_NOW) * sin_theta + eyeX;
+            lookAtY = focal * Math.cos(PHI_NOW) * cos_theta + eyeY;
+            lookAtZ = focal * Math.sin(PHI_NOW) + eyeZ;
 
             break;
     }
-    case "KeyL":{ 
+    case "KeyK":{ 
             if(JUDGE == -1 || JUDGE == 1)
             { 
               PHI_NOW = phi0 - STEP2;  
@@ -558,9 +558,10 @@ function myKeyDown(kev) {
             {
               PHI_NOW -= STEP2;
             }
-            lookAtY = temp * Math.sin(PHI_NOW) + eyeY;
-            lookAtX = temp * Math.cos(PHI_NOW) * sin_theta + eyeX;
-            lookAtZ = temp * Math.cos(PHI_NOW) * cos_theta + eyeZ;
+
+            lookAtX = focal * Math.cos(PHI_NOW) * sin_theta + eyeX;
+            lookAtY = focal * Math.cos(PHI_NOW) * cos_theta + eyeY;
+            lookAtZ = focal * Math.sin(PHI_NOW) + eyeZ;
 
             break;
     }

@@ -139,7 +139,7 @@ function VBObox1() {
     //                                
     //-------------ATTRIBUTES of each vertex, read from our Vertex Buffer Object
     'attribute vec4 a_Position; \n' +   // vertex position (model coord sys)
-    'attribute vec4 a_Normal; \n' +     // vertex normal vector (model coord sys)
+    // 'attribute vec4 a_Normal; \n' +     // vertex normal vector (model coord sys)
 
                       
     //-------------UNIFORMS: values set from JavaScript before a drawing command.
@@ -169,7 +169,7 @@ function VBObox1() {
     '  v_Position = u_ModelMatrix * a_Position; \n' +
       // 3D surface normal of our vertex, in world coords.  ('varying'--its value
       // gets interpolated (in world coords) for each pixel's fragment shader.
-    '  v_Normal = normalize(vec3(u_NormalMatrix * a_Normal));\n' +
+    '  v_Normal = normalize(vec3(u_NormalMatrix * a_Position));\n' +
     '  v_Kd = u_MatlSet[0].diff; \n' +    // find per-pixel diffuse reflectance from per-vertex
                             // (no per-pixel Ke,Ka, or Ks, but you can do it...)
     //  '  v_Kd = vec3(1.0, 1.0, 0.0); \n'  + // TEST; color fixed at green
@@ -280,7 +280,7 @@ function VBObox1() {
 	//             //----------------------Attribute sizes
   this.vboFcount_a_Pos1 =  3;    // # of floats in the VBO needed to store the
                                  // attribute named a_Pos1. (4: x,y,z,w values)
-  this.vboFcount_a_Nor1 = 3;     // # of floats for this attrib (r,g,b values) 
+  // this.vboFcount_a_Nor1 = 3;     // # of floats for this attrib (r,g,b values) 
  //  console.assert((this.vboFcount_a_Pos1 +     // check the size of each and
  //                  this.vboFcount_a_Nor1) *   // every attribute in our VBO
  //                  this.FSIZE == this.vboStride, // for agreeement with'stride'
@@ -366,14 +366,14 @@ VBObox1.prototype.init = function() {
   initArrayBuffer(gl, this.posLoc, new Float32Array(this.positions));
 
   // Do it again for normal
-  this.norLoc = gl.createBuffer();  
-  if (!this.norLoc) {
-    console.log(this.constructor.name + 
-                '.init() failed to create VBO in GPU.'); 
-    return;
-  }
+  // this.norLoc = gl.createBuffer();  
+  // if (!this.norLoc) {
+  //   console.log(this.constructor.name + 
+  //               '.init() failed to create VBO in GPU.'); 
+  //   return;
+  // }
 
-  initArrayBuffer(gl, this.norLoc, new Float32Array(this.positions));
+  // initArrayBuffer(gl, this.norLoc, new Float32Array(this.positions));
   
   // ---------- Bind Element Array Buffer ----------
 
@@ -423,12 +423,12 @@ VBObox1.prototype.init = function() {
     return -1;	// error exit.
   }
 
-  this.a_Nor1Loc = gl.getAttribLocation(this.shaderLoc, 'a_Normal');
-  if(this.a_Pos1Loc < 0) {
-    console.log(this.constructor.name + 
-                '.init() Failed to get GPU location of attribute a_Normal');
-    return -1;  // error exit.
-  }
+  // this.a_Nor1Loc = gl.getAttribLocation(this.shaderLoc, 'a_Normal');
+  // if(this.a_Pos1Loc < 0) {
+  //   console.log(this.constructor.name + 
+  //               '.init() Failed to get GPU location of attribute a_Normal');
+  //   return -1;  // error exit.
+  // }
 
 
   // c2) Find All Uniforms:-----------------------------------------------------
@@ -479,12 +479,12 @@ VBObox1.prototype.switchToMe = function () {
     }
 
   // Do it again for normals
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.norLoc);
-    if (!enableArrayBuffer(gl, this.norLoc, 'a_Normal', gl.FLOAT, this.vboFcount_a_Nor1))
-    {
-      console.log('Failed to enable a_Normal buffer object');
-      return -1;
-    }
+    // gl.bindBuffer(gl.ARRAY_BUFFER, this.norLoc);
+    // if (!enableArrayBuffer(gl, this.norLoc, 'a_Normal', gl.FLOAT, this.vboFcount_a_Nor1))
+    // {
+    //   console.log('Failed to enable a_Normal buffer object');
+    //   return -1;
+    // }
 
     // Fill in the vertex shader source & fragment shader source
 
