@@ -255,55 +255,25 @@ function VBObox1() {
     '  gl_FragColor = vec4(emissive + ambient + diffuse + speculr , 1.0);\n' +
     '}\n';
 
+  this.vboContents = [];
 
-  this.positions = [];
-  this.indices = [];
+  this.vboContents = makeSphere();
 
-  makeSphere(this.positions, this.indices);
-
-	// this.vboContents = sphVerts;
-  
-	// this.vboVerts = sphVertsCount;							// # of vertices held in 'vboContents' array;
-	// this.FSIZE = this.vboContents.BYTES_PER_ELEMENT;  
-	//                               // bytes req'd by 1 vboContents array element;
-	// 															// (why? used to compute stride and offset 
-	// 															// in bytes for vertexAttribPointer() calls)
- //  this.vboBytes = this.vboContents.length * this.FSIZE;               
- //                                // (#  of floats in vboContents array) * 
- //                                // (# of bytes/float).
-	// this.vboStride = this.vboBytes / this.vboVerts;     
-	//                               // (== # of bytes to store one complete vertex).
-	//                               // From any attrib in a given vertex in the VBO, 
-	//                               // move forward by 'vboStride' bytes to arrive 
-	//                               // at the same attrib for the next vertex.
-	                               
-	//             //----------------------Attribute sizes
-  this.vboFcount_a_Pos1 =  3;    // # of floats in the VBO needed to store the
+  //             //----------------------Attribute sizes
+  this.vboFcount_a_Pos1 =  4;    // # of floats in the VBO needed to store the
                                  // attribute named a_Pos1. (4: x,y,z,w values)
-  // this.vboFcount_a_Nor1 = 3;     // # of floats for this attrib (r,g,b values) 
- //  console.assert((this.vboFcount_a_Pos1 +     // check the size of each and
- //                  this.vboFcount_a_Nor1) *   // every attribute in our VBO
- //                  this.FSIZE == this.vboStride, // for agreeement with'stride'
- //                  "Uh oh! VBObox1.vboStride disagrees with attribute-size values!");
+
+  this.vboVerts = this.vboContents.length / this.vboFcount_a_Pos1;
+
+                  
                   
  //              //----------------------Attribute offsets
-	// this.vboOffset_a_Pos1 = 0;    //# of bytes from START of vbo to the START
-	//                               // of 1st a_Pos1 attrib value in vboContents[]
- //  this.vboOffset_a_Nor1 = (this.vboFcount_a_Pos1) * this.FSIZE;  
-                                // == 4 floats * bytes/float
-                                //# of bytes from START of vbo to the START
-                                // of 1st a_Colr1 attrib value in vboContents[]
-  // this.vboOffset_a_PtSiz1 =(this.vboFcount_a_Pos1 +
-  //                           this.vboFcount_a_Colr1) * this.FSIZE; 
-                                // == 7 floats * bytes/float
-                                // # of bytes from START of vbo to the START
-                                // of 1st a_PtSize attrib value in vboContents[]
+	this.vboOffset_a_Pos1 = 0;    //# of bytes from START of vbo to the START
+	                              // of 1st a_Pos1 attrib value in vboContents[]
 
 	            //-----------------------GPU memory locations:                                
-	this.posLoc;									// GPU Location for Vertex Buffer Object (Position), 
+	this.vboLoc;									// GPU Location for Vertex Buffer Object (Position), 
 	                              // returned by gl.createBuffer() function call
-  this.norLoc;                  // GPU Location for Vertex Buffer Object (Normal), 
-                                // returned by gl.createBuffer() function call
 
   this.elementLoc;                  // GPU Location for Element Array Buffer Object, 
                                 // returned by gl.createBuffer() function call
@@ -355,42 +325,15 @@ VBObox1.prototype.init = function() {
 
   // -----------------------------------------------------------------------------
   // b) Create VBO on GPU, fill it------------------------------------------------
-	this.posLoc = gl.createBuffer();	
-  if (!this.posLoc) {
+	this.vboLoc = gl.createBuffer();	
+  if (!this.vboLoc) {
     console.log(this.constructor.name + 
     						'.init() failed to create VBO in GPU.'); 
     return;
   }
 
   // ---------- Bind Array Buffer ----------
-  initArrayBuffer(gl, this.posLoc, new Float32Array(this.positions));
-
-  // Do it again for normal
-  // this.norLoc = gl.createBuffer();  
-  // if (!this.norLoc) {
-  //   console.log(this.constructor.name + 
-  //               '.init() failed to create VBO in GPU.'); 
-  //   return;
-  // }
-
-  // initArrayBuffer(gl, this.norLoc, new Float32Array(this.positions));
-  
-  // ---------- Bind Element Array Buffer ----------
-
-  // Unbind the buffer object
-  gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-  // Write the indices to the buffer object
-  this.elementLoc = gl.createBuffer();
-  if (!this.elementLoc) {
-    console.log('Failed to create the buffer object');
-    return -1;
-  }
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.elementLoc);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), gl.STATIC_DRAW);
-
-  // console.log(this.indices.length);
-  this.elementLen = this.indices.length;
+  initArrayBuffer(gl, this.vboLoc, new Float32Array(this.vboContents));
   
   // Specify the purpose of our newly-created VBO on the GPU.  Your choices are:
   //	== "gl.ARRAY_BUFFER" : the VBO holds vertices, each made of attributes 
@@ -422,13 +365,6 @@ VBObox1.prototype.init = function() {
     						'.init() Failed to get GPU location of attribute a_Pos1');
     return -1;	// error exit.
   }
-
-  // this.a_Nor1Loc = gl.getAttribLocation(this.shaderLoc, 'a_Normal');
-  // if(this.a_Pos1Loc < 0) {
-  //   console.log(this.constructor.name + 
-  //               '.init() Failed to get GPU location of attribute a_Normal');
-  //   return -1;  // error exit.
-  // }
 
 
   // c2) Find All Uniforms:-----------------------------------------------------
@@ -466,13 +402,13 @@ VBObox1.prototype.switchToMe = function () {
   //  instead connect to our own already-created-&-filled VBO.  This new VBO can 
   //    supply values to use as attributes in our newly-selected shader program:
   	gl.bindBuffer(gl.ARRAY_BUFFER,	    // GLenum 'target' for this GPU buffer 
-  										this.posLoc);			// the ID# the GPU uses for our VBO.
+  										this.vboLoc);			// the ID# the GPU uses for our VBO.
   // c) connect our newly-bound VBO to supply attribute variable values for each
   // vertex to our SIMD shader program, using 'vertexAttribPointer()' function.
   // this sets up data paths from VBO to our shader units:
     //  Here's how to use the almost-identical OpenGL version of this function:
     //    http://www.opengl.org/sdk/docs/man/xhtml/glVertexAttribPointer.xml )
-    if (!enableArrayBuffer(gl, this.posLoc, 'a_Position', gl.FLOAT, this.vboFcount_a_Pos1)) 
+    if (!enableArrayBuffer(gl, this.vboLoc, 'a_Position', gl.FLOAT, this.vboFcount_a_Pos1)) 
     {
       console.log('Failed to enable a_Position buffer object');
       return -1;
@@ -543,7 +479,7 @@ var isOK = true;
     						'.isReady() false: shader program at this.shaderLoc not in use!');
     isOK = false;
   }
-  if(gl.getParameter(gl.ARRAY_BUFFER_BINDING) != this.norLoc) {
+  if(gl.getParameter(gl.ARRAY_BUFFER_BINDING) != this.vboLoc) {
       console.log(this.constructor.name + 
   						'.isReady() false: vbo at this.norLoc not in use!');
     isOK = false;
@@ -612,13 +548,13 @@ VBObox1.prototype.draw = function() {
   // gl.enable(gl.CULL_FACE);
   // gl.cullFace(gl.BACK);
       // Draw just the sphere's vertices
-  // gl.drawArrays(gl.TRIANGLE_STRIP,        // use this drawing primitive, and
-  //               0, // start at this vertex number, and 
-  //               this.vboVerts); // draw this many vertices.
+  gl.drawArrays(gl.TRIANGLE_STRIP,        // use this drawing primitive, and
+                0, // start at this vertex number, and 
+                this.vboVerts); // draw this many vertices.
 
   // Usage: void gl.drawElements(mode, count, type, offset);
   // console.log(this.mvpMatrix);
-  gl.drawElements(gl.TRIANGLES, this.elementLen, gl.UNSIGNED_SHORT, 0);
+  // gl.drawElements(gl.TRIANGLES, this.elementLen, gl.UNSIGNED_SHORT, 0);
 
 }
 
