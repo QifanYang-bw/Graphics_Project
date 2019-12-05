@@ -439,7 +439,7 @@ function myKeyDown(kev) {
             lookAtZ -= STEP1 * t[2];
 
             break;
-        }
+    }
     case "KeyA": { // a
             u = new Float32Array([0, 0, 1]);
             
@@ -464,7 +464,6 @@ function myKeyDown(kev) {
             lookAtZ += STEP1 * t[2];
 
             break;
-      
     } 
     case "KeyW": 
            { 
@@ -480,7 +479,6 @@ function myKeyDown(kev) {
             lookAtZ += STEP1 * t[2];
 
             break;
-
     } 
     case "KeyS": { 
             t = new Vector3();
@@ -496,6 +494,40 @@ function myKeyDown(kev) {
 
             break;
     } 
+    case "KeyI":{ 
+            if (JUDGE==-1 || JUDGE==1)
+            {  
+              PHI_NOW = phi0 + STEP2;
+              JUDGE = 0;
+            }
+            else
+            {
+              PHI_NOW += STEP2;
+            }
+
+            lookAtX = focal * Math.cos(PHI_NOW) * sin_theta + eyeX;
+            lookAtY = focal * Math.cos(PHI_NOW) * cos_theta + eyeY;
+            lookAtZ = focal * Math.sin(PHI_NOW) + eyeZ;
+
+            break;
+    }
+    case "KeyK":{ 
+            if(JUDGE == -1 || JUDGE == 1)
+            { 
+              PHI_NOW = phi0 - STEP2;  
+              JUDGE = 0;
+            }
+            else
+            {
+              PHI_NOW -= STEP2;
+            }
+
+            lookAtX = focal * Math.cos(PHI_NOW) * sin_theta + eyeX;
+            lookAtY = focal * Math.cos(PHI_NOW) * cos_theta + eyeY;
+            lookAtZ = focal * Math.sin(PHI_NOW) + eyeZ;
+
+            break;
+    }
     case "KeyJ":{ 
           if(JUDGE==-1 || JUDGE==0)
             {
@@ -531,40 +563,7 @@ function myKeyDown(kev) {
             break;
     }
       
-    case "KeyI":{ 
-            if (JUDGE==-1 || JUDGE==1)
-            {  
-              PHI_NOW = phi0 + STEP2;
-              JUDGE = 0;
-            }
-            else
-            {
-              PHI_NOW += STEP2;
-            }
 
-            lookAtX = focal * Math.cos(PHI_NOW) * sin_theta + eyeX;
-            lookAtY = focal * Math.cos(PHI_NOW) * cos_theta + eyeY;
-            lookAtZ = focal * Math.sin(PHI_NOW) + eyeZ;
-
-            break;
-    }
-    case "KeyK":{ 
-            if(JUDGE == -1 || JUDGE == 1)
-            { 
-              PHI_NOW = phi0 - STEP2;  
-              JUDGE = 0;
-            }
-            else
-            {
-              PHI_NOW -= STEP2;
-            }
-
-            lookAtX = focal * Math.cos(PHI_NOW) * sin_theta + eyeX;
-            lookAtY = focal * Math.cos(PHI_NOW) * cos_theta + eyeY;
-            lookAtZ = focal * Math.sin(PHI_NOW) + eyeZ;
-
-            break;
-    }
     case "KeyM":{
       matlSel = (matlSel +1)%MATL_DEFAULT;  // see materials_Ayerdi.js for list
       matl0.setMatl(matlSel);               // set new material reflectances,
