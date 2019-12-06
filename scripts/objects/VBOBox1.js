@@ -118,10 +118,12 @@ function VBObox1() {
   // Fragment Shader.
 
   //=============================================================================
-  // Vertex shader program: Gouraud Shading + Phong Lighting
+  // Vertex shader program: Gouraud Shading + Blinn Phong Lighting
   //=============================================================================
   // Reason for adding a '1':
   // https://gamedev.stackexchange.com/questions/61257/glsl-declaring-global-variables-outside-of-the-main-function-scope
+
+  this.sn = 4;
   this.VERT_SRC =
     //-------------Set precision.
     // GLSL-ES 2.0 defaults (from spec; '4.5.3 Default Precision Qualifiers'):
@@ -148,59 +150,57 @@ function VBObox1() {
 
     //                                
     //-------------ATTRIBUTES of each vertex, read from our Vertex Buffer Object
-    'attribute vec4 a_Position1; \n' +   // vertex position (model coord sys)
+    'attribute vec4 a_Position' + this.sn + '; \n' +   // vertex position (model coord sys)
 
     //-------------UNIFORMS: values set from JavaScript before a drawing command.
     //  'uniform vec3 u_Kd; \n' +           // Phong diffuse reflectance for the 
                                         // entire shape. Later: as vertex attrib.
-    'uniform MatlT u_MatlSet1[1];\n' +   // Array of all materials.
-    'uniform mat4 u_MvpMatrix1; \n' +
-    'uniform mat4 u_ModelMatrix1; \n' +    // Model matrix
-    'uniform mat4 u_NormalMatrix1; \n' +   // Inverse Transpose of ModelMatrix;
+    'uniform MatlT u_MatlSet' + this.sn + '[1];\n' +   // Array of all materials.
+    'uniform mat4 u_MvpMatrix' + this.sn + '; \n' +
+    'uniform mat4 u_ModelMatrix' + this.sn + '; \n' +    // Model matrix
+    'uniform mat4 u_NormalMatrix' + this.sn + '; \n' +   // Inverse Transpose of ModelMatrix;
                                           // (won't distort normal vec directions
                                           // but it usually WILL change its length)
     
     //-------------VARYING:Vertex Shader values sent per-pixel to Fragment shader:
-    'const int LampCount1 = ' + lightSourceCount + ';\n' +
-    'uniform LampT u_LampSet1[' + lightSourceCount + '];\n' +   // Array of all light sources.
+    'const int LampCount' + this.sn + ' = ' + lightSourceCount + ';\n' +
+    'uniform LampT u_LampSet' + this.sn + '[' + lightSourceCount + '];\n' +   // Array of all light sources.
 
-    'uniform vec3 u_eyePosWorld1; \n' +  // Camera/eye location in world coords.
+    'uniform vec3 u_eyePosWorld' + this.sn + '; \n' +  // Camera/eye location in world coords.
 
     'varying vec4 color; \n' + 
 
     'void main() { \n' +
-    '  gl_Position = u_MvpMatrix1 * a_Position1;\n' +
+    '  gl_Position = u_MvpMatrix' + this.sn + ' * a_Position' + this.sn + ';\n' +
 
-    '  vec4 worldPosition1 = u_ModelMatrix1 * a_Position1; \n' +
-    '  vec3 Kd = u_MatlSet1[0].diff; \n' +    // find per-pixel diffuse reflectance from per-vertex
+    '  vec4 worldPosition = u_ModelMatrix' + this.sn + ' * a_Position' + this.sn + '; \n' +
+    '  vec3 Kd = u_MatlSet' + this.sn + '[0].diff; \n' +    // find per-pixel diffuse reflectance from per-vertex
     // Phong Lighting: diffuse reflectance
 
-    '  vec3 normal = normalize(vec3(u_NormalMatrix1 * a_Position1)); \n' +
+    '  vec3 normal = normalize(vec3(u_NormalMatrix' + this.sn + ' * a_Position' + this.sn + ')); \n' +
     '  vec3 ambient = vec3(0.0, 0.0, 0.0), diffuse = vec3(0.0, 0.0, 0.0), speculr = vec3(0.0, 0.0, 0.0);' + 
 
-    '  for (int i = 0; i < LampCount1; i+=1) {' + 
+    '  for (int i = 0; i < LampCount' + this.sn + '; i+=1) {' + 
         // Find the unit-length light dir vector 'L' (surface pt --> light):
-    '    vec3 lightDirection = normalize(u_LampSet1[i].pos - worldPosition1.xyz);\n' +
+    '    vec3 lightDirection = normalize(u_LampSet' + this.sn + '[i].pos - worldPosition.xyz);\n' +
         // Find the unit-length eye-direction vector 'V' (surface pt --> camera)
-    '    vec3 eyeDirection = normalize(u_eyePosWorld1 - worldPosition1.xyz); \n' +
+    '    vec3 eyeDirection = normalize(u_eyePosWorld' + this.sn + ' - worldPosition.xyz); \n' +
 
-        // Diffusal
     '    float nDotL = max(dot(lightDirection, normal), 0.0); \n' +
 
-        // Specular (Phong)
-    '    vec3 C = normal * dot(lightDirection, normal); \n' +
-    '    vec3 reflectDirection = 2. * C - lightDirection; \n' +
-    '    float RdotV = max(dot(reflectDirection, eyeDirection), 0.); \n' +
-    '    float e64 = pow(RdotV, float(u_MatlSet1[0].shiny)); \n' +
+    '    vec3 H = normalize(lightDirection + eyeDirection); \n' +
+    '    float nDotH = max(dot(H, normal), 0.0); \n' +
+
+    '    float e64 = pow(nDotH, float(u_MatlSet' + this.sn + '[0].shiny));\n' +
 
     // Calculate the final color from diffuse reflection and ambient reflection
 
-    '    ambient = ambient + u_LampSet1[i].ambi * u_MatlSet1[0].ambi;\n' +
-    '    diffuse = diffuse + u_LampSet1[i].diff * Kd * nDotL;\n' +
-    '    speculr = speculr + u_LampSet1[i].spec * u_MatlSet1[0].spec * e64;\n' +
+    '    ambient = ambient + u_LampSet' + this.sn + '[i].ambi * u_MatlSet' + this.sn + '[0].ambi;\n' +
+    '    diffuse = diffuse + u_LampSet' + this.sn + '[i].diff * Kd * nDotL;\n' +
+    '    speculr = speculr + u_LampSet' + this.sn + '[i].spec * u_MatlSet' + this.sn + '[0].spec * e64;\n' +
     '  }' +
 
-    '  vec3 emissive = u_MatlSet1[0].emit;' + 
+    '  vec3 emissive = u_MatlSet' + this.sn + '[0].emit;' + 
 
     '  color = vec4(emissive + ambient + diffuse + speculr, 1.0);\n' +
     '}\n'
@@ -216,7 +216,6 @@ function VBObox1() {
     //                  precision lowp sampler2D; precision lowp samplerCube;
     // DEFAULT for Fragment Shaders:  UNDEFINED for float; precision mediump int;
     //                  precision lowp sampler2D; precision lowp samplerCube;
-    // MATCH the Vertex shader precision for float and int:
     'precision highp float;\n' +
     'precision highp int;\n' +
 
@@ -249,16 +248,15 @@ function VBObox1() {
   this.vboContents = makeSphere();
 
   //             //----------------------Attribute sizes
-  this.vboFcount_a_Pos1 = 4;    // # of floats in the VBO needed to store the
-                                 // attribute named a_Pos1. (4: x,y,z,w values)
+  this.vboFcount_a_Pos = 4;    // # of floats in the VBO needed to store the
+                                 // attribute named a_Position+sn. (4: x,y,z,w values)
 
-  this.vboVerts = this.vboContents.length / this.vboFcount_a_Pos1;
+  this.vboVerts = this.vboContents.length / this.vboFcount_a_Pos;
 
                   
                   
  //              //----------------------Attribute offsets
-	this.vboOffset_a_Pos1 = 0;    //# of bytes from START of vbo to the START
-	                              // of 1st a_Pos1 attrib value in vboContents[]
+	this.vboOffset_a_Pos = 0; 
 
 	            //-----------------------GPU memory locations:                                
 	this.vboLoc;									// GPU Location for Vertex Buffer Object (Position), 
@@ -376,10 +374,10 @@ VBObox1.prototype.switchToMe = function () {
   // establish new connections between our shader program's attributes and the VBO
   // we wish to use.  
 
-  this.a_Pos1Loc = gl.getAttribLocation(this.shaderLoc, 'a_Position1');
-  if(this.a_Pos1Loc < 0) {
+  this.a_PosLoc = gl.getAttribLocation(this.shaderLoc, 'a_Position' + this.sn + '');
+  if(this.a_PosLoc < 0) {
     console.log(this.constructor.name + 
-                '.init() Failed to get GPU location of attribute a_Pos1');
+                '.init() Failed to get GPU location of attribute a_Pos' + this.sn + '');
     return -1;  // error exit.
   }
     
@@ -393,9 +391,9 @@ VBObox1.prototype.switchToMe = function () {
   // this sets up data paths from VBO to our shader units:
     //  Here's how to use the almost-identical OpenGL version of this function:
     //    http://www.opengl.org/sdk/docs/man/xhtml/glVertexAttribPointer.xml )
-    if (!enableArrayBuffer(gl, this.vboLoc, 'a_Position1', gl.FLOAT, this.vboFcount_a_Pos1)) 
+    if (!enableArrayBuffer(gl, this.vboLoc, 'a_Position' + this.sn + '', gl.FLOAT, this.vboFcount_a_Pos)) 
     {
-      console.log('Failed to enable a_Position1 buffer object');
+      console.log('Failed to enable a_Position' + this.sn + ' buffer object');
       return -1;
     }
 
@@ -411,10 +409,10 @@ VBObox1.prototype.switchToMe = function () {
 
     // Create, save the storage locations of uniform variables: ... for the scene
     // (Version 03: changed these to global vars (DANGER!) for use inside any func)
-    this.uLoc_eyePosWorld  = gl.getUniformLocation(gl.program, 'u_eyePosWorld1');
-    this.uLoc_ModelMatrix  = gl.getUniformLocation(gl.program, 'u_ModelMatrix1');
-    this.uLoc_MvpMatrix    = gl.getUniformLocation(gl.program, 'u_MvpMatrix1');
-    this.uLoc_NormalMatrix = gl.getUniformLocation(gl.program, 'u_NormalMatrix1');
+    this.uLoc_eyePosWorld  = gl.getUniformLocation(gl.program, 'u_eyePosWorld' + this.sn + '');
+    this.uLoc_ModelMatrix  = gl.getUniformLocation(gl.program, 'u_ModelMatrix' + this.sn + '');
+    this.uLoc_MvpMatrix    = gl.getUniformLocation(gl.program, 'u_MvpMatrix' + this.sn + '');
+    this.uLoc_NormalMatrix = gl.getUniformLocation(gl.program, 'u_NormalMatrix' + this.sn + '');
     if (!this.uLoc_eyePosWorld ||
         !this.uLoc_ModelMatrix || !this.uLoc_MvpMatrix || !this.uLoc_NormalMatrix) {
       console.log('Failed to get GPUs matrix storage locations');
@@ -424,10 +422,10 @@ VBObox1.prototype.switchToMe = function () {
     // NEW!  Note we're getting the location of a GLSL struct array member:
 
     for (var i = 0; i < lightSourceCount; i++) {
-      lightSource[i].u_pos  = gl.getUniformLocation(gl.program, 'u_LampSet1[' + i + '].pos'); 
-      lightSource[i].u_ambi = gl.getUniformLocation(gl.program, 'u_LampSet1[' + i + '].ambi');
-      lightSource[i].u_diff = gl.getUniformLocation(gl.program, 'u_LampSet1[' + i + '].diff');
-      lightSource[i].u_spec = gl.getUniformLocation(gl.program, 'u_LampSet1[' + i + '].spec');
+      lightSource[i].u_pos  = gl.getUniformLocation(gl.program, 'u_LampSet' + this.sn + '[' + i + '].pos'); 
+      lightSource[i].u_ambi = gl.getUniformLocation(gl.program, 'u_LampSet' + this.sn + '[' + i + '].ambi');
+      lightSource[i].u_diff = gl.getUniformLocation(gl.program, 'u_LampSet' + this.sn + '[' + i + '].diff');
+      lightSource[i].u_spec = gl.getUniformLocation(gl.program, 'u_LampSet' + this.sn + '[' + i + '].spec');
       if( !lightSource[i].u_pos || !lightSource[i].u_ambi || !lightSource[i].u_diff || !lightSource[i].u_spec ) {
         console.log('Failed to get GPU\'s lightSource[' + i + '] storage locations');
         return;
@@ -435,11 +433,11 @@ VBObox1.prototype.switchToMe = function () {
     }
 
     // ... for Phong material/reflectance:
-    matl0.uLoc_Ke = gl.getUniformLocation(gl.program, 'u_MatlSet1[0].emit');
-    matl0.uLoc_Ka = gl.getUniformLocation(gl.program, 'u_MatlSet1[0].ambi');
-    matl0.uLoc_Kd = gl.getUniformLocation(gl.program, 'u_MatlSet1[0].diff');
-    matl0.uLoc_Ks = gl.getUniformLocation(gl.program, 'u_MatlSet1[0].spec');
-    matl0.uLoc_Kshiny = gl.getUniformLocation(gl.program, 'u_MatlSet1[0].shiny');
+    matl0.uLoc_Ke = gl.getUniformLocation(gl.program, 'u_MatlSet' + this.sn + '[0].emit');
+    matl0.uLoc_Ka = gl.getUniformLocation(gl.program, 'u_MatlSet' + this.sn + '[0].ambi');
+    matl0.uLoc_Kd = gl.getUniformLocation(gl.program, 'u_MatlSet' + this.sn + '[0].diff');
+    matl0.uLoc_Ks = gl.getUniformLocation(gl.program, 'u_MatlSet' + this.sn + '[0].spec');
+    matl0.uLoc_Kshiny = gl.getUniformLocation(gl.program, 'u_MatlSet' + this.sn + '[0].shiny');
     if(!matl0.uLoc_Ke || !matl0.uLoc_Ka || !matl0.uLoc_Kd 
                       || !matl0.uLoc_Ks || !matl0.uLoc_Kshiny
        ) {
