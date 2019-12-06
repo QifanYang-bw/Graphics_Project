@@ -172,7 +172,7 @@ function makeSphere() {
     }
   }
 
-  console.log(sphVertsCount);
+  // console.log(sphVertsCount);
   return sphVerts;
 }
 

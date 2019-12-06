@@ -83,7 +83,7 @@ var lightSourceCount = 2;
 // For multiple VBOs & Shaders:-----------------
 worldBox = new VBObox0();		  // Holds VBO & shaders for 3D 'world' ground-plane grid, etc;
 part1Box = new VBObox1();		  // "  "  for first set of custom-shaded 3D parts
-// part2Box = new VBObox2();     // "  "  for second set of custom-shaded 3D parts
+part2Box = new VBObox2();     // "  "  for second set of custom-shaded 3D parts
 
 // For animation:---------------------
 var g_lastMS = Date.now();			// Timestamp (in milliseconds) for our 
@@ -166,7 +166,7 @@ function main() {
   worldBox.init(gl);		// VBO + shaders + uniforms + attribs for our 3D world,
                         // including ground-plane,                       
   part1Box.init(gl);		//  "		"		"  for 1st kind of shading & lighting
-	// part2Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
+	part2Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
 	
   gl.clearColor(0.2, 0.2, 0.2, 1);	  // RGBA color for clearing <canvas>
   gl.enable(gl.DEPTH_TEST);
@@ -338,17 +338,20 @@ function drawAll() {
 		worldBox.draw();			  // draw our VBO's contents using our shaders.
   }
 
+  // console.log('hibefore');
   // console.log('chang', __cuon_matrix_mod_stack);
   if(g_show1 == 1) { // IF user didn't press HTML button to 'hide' VBO1:
     part1Box.switchToMe();  // Set WebGL to render from this VBObox.
   	part1Box.adjust();		  // Send new values for uniforms to the GPU, and
   	part1Box.draw();			  // draw our VBO's contents using our shaders.
 	}
-	// if(g_show2 == 1) { // IF user didn't press HTML button to 'hide' VBO2:
-	//   part2Box.switchToMe();  // Set WebGL to render from this VBObox.
- //  	part2Box.adjust();		  // Send new values for uniforms to the GPU, and
- //  	part2Box.draw();			  // draw our VBO's contents using our shaders.
- //  	}
+
+  // console.log('hi');
+	if(g_show2 == 1) { // IF user didn't press HTML button to 'hide' VBO2:
+	  part2Box.switchToMe();  // Set WebGL to render from this VBObox.
+  	part2Box.adjust();		  // Send new values for uniforms to the GPU, and
+  	part2Box.draw();			  // draw our VBO's contents using our shaders.
+  }
 /* // ?How slow is our own code?  	
 var aftrDraw = Date.now();
 var drawWait = aftrDraw - b4Draw;
