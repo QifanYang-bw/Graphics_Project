@@ -176,7 +176,7 @@ function VBObox1() {
     '}\n';
 
   //=============================================================================
-  // Fragment shader program: Blinn Phong
+  // Fragment shader program: Phong
   //=============================================================================
   this.FRAG_SRC =
     //-------------Set precision.
@@ -244,25 +244,18 @@ function VBObox1() {
     '    vec3 lightDirection = normalize(u_LampSet1[i].pos - v_Position1.xyz);\n' +
         // Find the unit-length eye-direction vector 'V' (surface pt --> camera)
     '    vec3 eyeDirection = normalize(u_eyePosWorld1 - v_Position1.xyz); \n' +
-        // The dot product of (unit-length) light direction and the normal vector
-        // (use max() to discard any negatives from lights below the surface) 
-        // (look in GLSL manual: what other functions would help?)
-        // gives us the cosine-falloff factor needed for the diffuse lighting term:
+
+        // Diffusal
     '    float nDotL = max(dot(lightDirection, normal), 0.0); \n' +
-        // The Blinn-Phong lighting model computes the specular term faster 
-        // because it replaces the (V*R)^shiny weighting with (H*N)^shiny,
-        // where 'halfway' vector H has a direction half-way between L and V
-        // H = norm(norm(V) + norm(L)).  Note L & V already normalized above.
-        // (see http://en.wikipedia.org/wiki/Blinn-Phong_shading_model)
-    '    vec3 H = normalize(lightDirection + eyeDirection); \n' +
-    '    float nDotH = max(dot(H, normal), 0.0); \n' +
-        // (use max() to discard any negatives from lights below the surface)
-        // Apply the 'shininess' exponent K_e:
-        // Try it two different ways:   The 'new hotness': pow() fcn in GLSL.
-        // CAREFUL!  pow() won't accept integer exponents! Convert K_shiny!  
-    '    float e64 = pow(nDotH, float(u_MatlSet1[0].shiny));\n' +
+
+        // Specular (Phong)
+    '    vec3 C = normal * dot(lightDirection, normal); \n' +
+    '    vec3 reflectDirection = 2. * C - lightDirection; \n' +
+    '    float RdotV = max(dot(reflectDirection, eyeDirection), 0.); \n' +
+    '    float e64 = pow(RdotV, float(u_MatlSet1[0].shiny)); \n' +
+
     // Calculate the final color from diffuse reflection and ambient reflection
-    //  '  vec3 emissive = u_Ke;' +
+
     '    ambient = ambient + u_LampSet1[i].ambi * u_MatlSet1[0].ambi;\n' +
     '    diffuse = diffuse + u_LampSet1[i].diff * v_Kd1 * nDotL;\n' +
     '    speculr = speculr + u_LampSet1[i].spec * u_MatlSet1[0].spec * e64;\n' +
