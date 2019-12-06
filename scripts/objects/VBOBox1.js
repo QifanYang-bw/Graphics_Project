@@ -22,28 +22,28 @@
 //              'global' variables; then we can call 'draw()' from any fcn.  
 //              In keypress() fcn, make s/S keys decrease/increase K_shiny by 1
 //              and call the 'draw()' function to show result on-screen. 
-//              Add JavaScript global variables for existing lamp0 uniforms;
-//              (Temporarily) use mouse-drag to modify lamp0 position & redraw;
-//              and make 'clear' button re-set the lamp0 position.
+//              Add JavaScript global variables for existing lightSource[0] uniforms;
+//              (Temporarily) use mouse-drag to modify lightSource[0] position & redraw;
+//              and make 'clear' button re-set the lightSource[0] position.
 //              Note how AWKWARDLY mouse-dragging moved the light: can we fix it?
 //  Version 05: YES! first, lets' understand what we see on-screen:
 //            --Prev. versions set Camera position to (6,0,0) in world coords,  
 //              (eyeWorldPos[] value set in main()), aimed at origin, 'up'==+z.
 //              THUS camera's x,y axes are aligned with world-space y,z axes! 
-//            --Prev. versions set lamp0Pos[] to world coords (6,6,0) in main(),
+//            --Prev. versions set lightSource[0]Pos[] to world coords (6,6,0) in main(),
 //              thus it's on-screen location is center-right.  Our mouseDrag() 
-//              code causes left/right drag to adjust lamp0 +/-x in world space, 
-//              (towards/away from camera), and up/down drag adjusts lamp0 +/-y 
+//              code causes left/right drag to adjust lightSource[0] +/-x in world space, 
+//              (towards/away from camera), and up/down drag adjusts lightSource[0] +/-y 
 //              (left/right on-screen). No wonder the result looks weird!
-//              FIX IT: change mouseDrag() to map x,y drags to lamp0 y,z values
+//              FIX IT: change mouseDrag() to map x,y drags to lightSource[0] y,z values
 //                instead of x,y.  We will keep x value fixed at +6, so that
-//                mouse-drags move lamp0 in the same yz plane as the camera.
-//                ALSO -- change lamp0 position to better-looking (6,5,5). 
+//                mouse-drags move lightSource[0] in the same yz plane as the camera.
+//                ALSO -- change lightSource[0] position to better-looking (6,5,5). 
 //                (don't forget HTML button handler 'clearDrag()' fcn below).
 //  Version 06: Create GLSL struct 'LampT' & prove we can use it as a uniform
 //              that affects Vertex Shader's on-screen result (see version0 6a)
 //              In Fragment shader, create a 1-element array of 'LampT' structs 
-//              and use it to replace the uniforms for 'lamp0' (see version 06b)
+//              and use it to replace the uniforms for 'lightSource[0]' (see version 06b)
 //              --Best way to create a JavaScript 'Lamp' object?
 //              --Best way to transfer contents to GLSL? GLSL 'Lamp' struct?
 //                (try: https://www.opengl.org/wiki/Uniform_%28GLSL%29 
@@ -60,7 +60,7 @@
 //              needed or used by one light source of any kind; put all its
 //              functions in a separate 'lights-JT.js' library (see HTML file:
 //              load this 'library' along with cuon-matrix-quat.js, etc).
-//              Create just one lightsT object called 'lamp0' to test.
+//              Create just one lightsT object called 'lightSource[0]' to test.
 //  Version 09: Create GLSL struct 'MatlT'; test it. Create a 1-element array of 
 //              'MatlT' structs in the Fragment Shader and  use element 0 of 
 //              that array to replace our misc reflectance uniforms.
@@ -95,7 +95,6 @@ var eyePosWorld = new Float32Array(3);  // x,y,z in world coords
 var matlSel= MATL_RED_PLASTIC;        // see keypress(): 'm' key changes matlSel
 var matl0 = new Material(matlSel);  
 //  ... for our first light source:   (stays false if never initialized)
-var lamp0 = new LightsT(); 
 
 
 //=============================================================================
@@ -135,11 +134,10 @@ function VBObox1() {
     '   vec3 diff;\n' +     // Kd: diffuse reflectance (r,g,b)
     '   vec3 spec;\n' +     // Ks: specular reflectance (r,g,b)
     '   int shiny;\n' +     // Kshiny: specular exponent (integer >= 1; typ. <200)
-    '   };\n' +
+    '};\n' +
     //                                
     //-------------ATTRIBUTES of each vertex, read from our Vertex Buffer Object
     'attribute vec4 a_Position; \n' +   // vertex position (model coord sys)
-    // 'attribute vec4 a_Normal; \n' +     // vertex normal vector (model coord sys)
 
                       
     //-------------UNIFORMS: values set from JavaScript before a drawing command.
@@ -204,11 +202,24 @@ function VBObox1() {
     '   vec3 diff;\n' +     // Kd: diffuse reflectance (r,g,b)
     '   vec3 spec;\n' +     // Ks: specular reflectance (r,g,b)
     '   int shiny;\n' +     // Kshiny: specular exponent (integer >= 1; typ. <200)
-    '   };\n' +
-    //
+    '};\n' +
+
     //-------------UNIFORMS: values set from JavaScript before a drawing command.
-    // first light source: (YOU write a second one...)
-    'uniform LampT u_LampSet[1];\n' +   // Array of all light sources.
+
+    // Tip: GLSL loops are un-rolled into native GPU instructions. This means there
+    // needs to be a hard upper limit to the number of passes through the for loop,
+    // that governs how many copies of the loop's inner code will be generated. If you
+    // replace this with a const float or even a #define directive, the shader compiler
+    // can then determine the number of passes at compile time, and generate the code
+    // accordingly. But with a uniform there, the upper limit is not known at compile time.
+
+    // Ref: https://stackoverflow.com/questions/38986208/webgl-loop-index-cannot-be-compared-with-non-constant-expression
+
+    // tl;dr: Use const float for loop variables and comparisons.
+
+    // Light source
+    'const int LampCount = ' + lightSourceCount + ';\n' +
+    'uniform LampT u_LampSet[' + lightSourceCount + '];\n' +   // Array of all light sources.
     'uniform MatlT u_MatlSet[1];\n' +   // Array of all materials.
     //
     'uniform vec3 u_eyePosWorld; \n' +  // Camera/eye location in world coords.
@@ -224,37 +235,43 @@ function VBObox1() {
         // Normalize! !!IMPORTANT!! TROUBLE if you don't! 
         // normals interpolated for each pixel aren't 1.0 in length any more!
     '  vec3 normal = normalize(v_Normal); \n' +
-  //  '  vec3 normal = v_Normal; \n' +
+    '  vec3 ambient = vec3(0.0, 0.0, 0.0), diffuse = vec3(0.0, 0.0, 0.0), speculr = vec3(0.0, 0.0, 0.0);' + 
+
+    '  for (int i = 0; i < LampCount; i+=1) {' + 
         // Find the unit-length light dir vector 'L' (surface pt --> light):
-    '  vec3 lightDirection = normalize(u_LampSet[0].pos - v_Position.xyz);\n' +
+    '    vec3 lightDirection = normalize(u_LampSet[i].pos - v_Position.xyz);\n' +
         // Find the unit-length eye-direction vector 'V' (surface pt --> camera)
-    '  vec3 eyeDirection = normalize(u_eyePosWorld - v_Position.xyz); \n' +
+    '    vec3 eyeDirection = normalize(u_eyePosWorld - v_Position.xyz); \n' +
         // The dot product of (unit-length) light direction and the normal vector
         // (use max() to discard any negatives from lights below the surface) 
         // (look in GLSL manual: what other functions would help?)
         // gives us the cosine-falloff factor needed for the diffuse lighting term:
-    '  float nDotL = max(dot(lightDirection, normal), 0.0); \n' +
+    '    float nDotL = max(dot(lightDirection, normal), 0.0); \n' +
         // The Blinn-Phong lighting model computes the specular term faster 
         // because it replaces the (V*R)^shiny weighting with (H*N)^shiny,
         // where 'halfway' vector H has a direction half-way between L and V
         // H = norm(norm(V) + norm(L)).  Note L & V already normalized above.
         // (see http://en.wikipedia.org/wiki/Blinn-Phong_shading_model)
-    '  vec3 H = normalize(lightDirection + eyeDirection); \n' +
-    '  float nDotH = max(dot(H, normal), 0.0); \n' +
+    '    vec3 H = normalize(lightDirection + eyeDirection); \n' +
+    '    float nDotH = max(dot(H, normal), 0.0); \n' +
         // (use max() to discard any negatives from lights below the surface)
         // Apply the 'shininess' exponent K_e:
         // Try it two different ways:   The 'new hotness': pow() fcn in GLSL.
         // CAREFUL!  pow() won't accept integer exponents! Convert K_shiny!  
-    '  float e64 = pow(nDotH, float(u_MatlSet[0].shiny));\n' +
+    '    float e64 = pow(nDotH, float(u_MatlSet[0].shiny));\n' +
     // Calculate the final color from diffuse reflection and ambient reflection
     //  '  vec3 emissive = u_Ke;' +
-    '  vec3 emissive =                    u_MatlSet[0].emit;' +
-    '  vec3 ambient = u_LampSet[0].ambi * u_MatlSet[0].ambi;\n' +
-    '  vec3 diffuse = u_LampSet[0].diff * v_Kd * nDotL;\n' +
-    '  vec3 speculr = u_LampSet[0].spec * u_MatlSet[0].spec * e64;\n' +
-    '  gl_FragColor = vec4(emissive + ambient + diffuse + speculr , 1.0);\n' +
+    '    ambient = ambient + u_LampSet[i].ambi * u_MatlSet[0].ambi;\n' +
+    '    diffuse = diffuse + u_LampSet[i].diff * v_Kd * nDotL;\n' +
+    '    speculr = speculr + u_LampSet[i].spec * u_MatlSet[0].spec * e64;\n' +
+    '  }' +
+
+    '  vec3 emissive = u_MatlSet[0].emit;' + 
+
+    '  gl_FragColor = vec4(emissive + ambient + diffuse + speculr, 1.0);\n' +
     '}\n';
 
+  // console.log(lightSourceCount);
   this.vboContents = [];
 
   this.vboContents = makeSphere();
@@ -438,13 +455,15 @@ VBObox1.prototype.switchToMe = function () {
     //  ... for Phong light source:
     // NEW!  Note we're getting the location of a GLSL struct array member:
 
-    lamp0.u_pos  = gl.getUniformLocation(gl.program, 'u_LampSet[0].pos'); 
-    lamp0.u_ambi = gl.getUniformLocation(gl.program, 'u_LampSet[0].ambi');
-    lamp0.u_diff = gl.getUniformLocation(gl.program, 'u_LampSet[0].diff');
-    lamp0.u_spec = gl.getUniformLocation(gl.program, 'u_LampSet[0].spec');
-    if( !lamp0.u_pos || !lamp0.u_ambi || !lamp0.u_diff || !lamp0.u_spec ) {
-      console.log('Failed to get GPUs Lamp0 storage locations');
-      return;
+    for (var i = 0; i < lightSourceCount; i++) {
+      lightSource[i].u_pos  = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].pos'); 
+      lightSource[i].u_ambi = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].ambi');
+      lightSource[i].u_diff = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].diff');
+      lightSource[i].u_spec = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].spec');
+      if( !lightSource[i].u_pos || !lightSource[i].u_ambi || !lightSource[i].u_diff || !lightSource[i].u_spec ) {
+        console.log('Failed to get GPU\'s lightSource[' + i + '] storage locations');
+        return;
+      }
     }
 
     // ... for Phong material/reflectance:
@@ -530,13 +549,17 @@ VBObox1.prototype.draw = function() {
   						'.draw() call you needed to call this.switchToMe()!!');
   }
 
-  gl.uniform3fv(lamp0.u_pos,  lamp0.I_pos.elements.slice(0,3));
-  //     ('slice(0,3) member func returns elements 0,1,2 (x,y,z) ) 
-  gl.uniform3fv(lamp0.u_ambi, lamp0.I_ambi.elements);   // ambient
-  gl.uniform3fv(lamp0.u_diff, lamp0.I_diff.elements);   // diffuse
-  gl.uniform3fv(lamp0.u_spec, lamp0.I_spec.elements);   // Specular
-  //  console.log('lamp0.u_pos',lamp0.u_pos,'\n' );
-  //  console.log('lamp0.I_diff.elements', lamp0.I_diff.elements, '\n');
+  for (var i = 0; i < lightSourceCount; i++) {
+    gl.uniform3fv(lightSource[i].u_pos,  lightSource[i].I_pos.elements.slice(0,3));
+    //     ('slice(0,3) member func returns elements 0,1,2 (x,y,z) ) 
+    gl.uniform3fv(lightSource[i].u_ambi, lightSource[i].I_ambi.elements);   // ambient
+    gl.uniform3fv(lightSource[i].u_diff, lightSource[i].I_diff.elements);   // diffuse
+    gl.uniform3fv(lightSource[i].u_spec, lightSource[i].I_spec.elements);   // Specular
+  }
+
+  //  console.log('lightSource[0].u_pos',lightSource[0].u_pos,'\n' );
+  //  console.log('lightSource[0].I_diff.elements', lightSource[0].I_diff.elements, '\n');mmmmmm
+
 
   //---------------For the Material object(s):
   gl.uniform3fv(matl0.uLoc_Ke, matl0.K_emit.slice(0,3));        // Ke emissive
@@ -553,13 +576,12 @@ VBObox1.prototype.draw = function() {
                 this.vboVerts); // draw this many vertices.
 
   // Usage: void gl.drawElements(mode, count, type, offset);
-  // console.log(this.mvpMatrix);
   // gl.drawElements(gl.TRIANGLES, this.elementLen, gl.UNSIGNED_SHORT, 0);
 
 }
 
 
-VBObox1.prototype.reload = function() {
+// VBObox1.prototype.reload = function() {
 //=============================================================================
 // Over-write current values in the GPU for our already-created VBO: use 
 // gl.bufferSubData() call to re-transfer some or all of our Float32Array 
@@ -570,7 +592,7 @@ VBObox1.prototype.reload = function() {
  //                                      // begins in the VBO.
  // 					 				this.vboContents);   // the JS source-data array used to fill VBO
 
-}
+// }
 
 /*
 VBObox1.prototype.empty = function() {

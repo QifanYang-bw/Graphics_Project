@@ -4,10 +4,9 @@
 // position, normal, indice
 
 
-
-var floatsPerVertex = 7;  // # of Float32Array elements used for each vertex
 var floatsPerPosition = 4;
 
+var floatsPerVertex = 7;  // # of Float32Array elements used for each vertex
 var gndVerts, gndVertsCount = 0;
 
 function makeGroundGrid() {

@@ -77,6 +77,9 @@ var gl;													// WebGL rendering context -- the 'webGL' object
 																// in JavaScript with all its member fcns & data
 var g_canvasID;									// HTML-5 'canvas' element ID#
 
+var lightSource = [];
+var lightSourceCount = 2;
+
 // For multiple VBOs & Shaders:-----------------
 worldBox = new VBObox0();		  // Holds VBO & shaders for 3D 'world' ground-plane grid, etc;
 part1Box = new VBObox1();		  // "  "  for first set of custom-shaded 3D parts
@@ -198,11 +201,20 @@ function main() {
 }
 
 function setLights() {
-    // Init World-coord. position & colors of first light source in global vars;
-    lamp0.I_pos.elements.set( [6.0, 5.0, 5.0]);
-    lamp0.I_ambi.elements.set([0.4, 0.4, 0.4]);
-    lamp0.I_diff.elements.set([1.0, 1.0, 1.0]);
-    lamp0.I_spec.elements.set([1.0, 1.0, 1.0]);
+  for (var i = 0; i < lightSourceCount; i++) {
+    lightSource[i] = new LightsT(); 
+  } 
+
+  // Init World position, colors of light source in global vars;
+  lightSource[0].I_pos.elements.set( [6.0, 5.0, 5.0]);
+  lightSource[0].I_ambi.elements.set([0.4, 0.4, 0.4]);
+  lightSource[0].I_diff.elements.set([1.0, 1.0, 1.0]);
+  lightSource[0].I_spec.elements.set([1.0, 1.0, 1.0]);
+
+  lightSource[1].I_pos.elements.set([-3.0, -5.0, -2.0]);
+  lightSource[1].I_ambi.elements.set([0.2, 0.2, 0.2]);
+  lightSource[1].I_diff.elements.set([0.6, 0.6, 0.6]);
+  lightSource[1].I_spec.elements.set([0.8, 0.8, 0.8]);
 }
 
 function timerAll() {
