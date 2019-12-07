@@ -96,7 +96,7 @@ var matl0 = new Material(matlSel);
 
 var shaders = new shaderLib();
 
-function VBObox(sn) {
+function VBObox(sn, vertexShader, fragmentShader) {
   //=============================================================================
   //=============================================================================
   // CONSTRUCTOR for one re-usable 'VBObox' object that holds all data and fcns
@@ -113,7 +113,7 @@ function VBObox(sn) {
   this.sn = sn;
 
   shaders.setSerialNumber(this.sn);
-  shaders.setShader(VertexShaderEnum.Phong, FragmentShaderEnum.Phong);
+  shaders.setShader(vertexShader, fragmentShader);
   shaders.generateShader();
 
   this.VERT_SRC = shaders.getVertexShader() 
@@ -174,6 +174,8 @@ VBObox.prototype.init = function() {
   //  you must call this VBObox object's switchToMe() function too!
   //--------------------
   // a) Compile,link,upload shaders-----------------------------------------------
+  console.log('Creating program for box ' + this.sn + '...');
+
   this.shaderLoc = createProgram(gl, this.VERT_SRC, this.FRAG_SRC);
   if (!this.shaderLoc) {
     console.log(this.constructor.name + 

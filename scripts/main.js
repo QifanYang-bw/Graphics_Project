@@ -82,10 +82,10 @@ var lightSourceCount = 2;
 
 // For multiple VBOs & Shaders:-----------------
 worldBox = new VBObox0();		  // Holds VBO & shaders for 3D 'world' ground-plane grid, etc;
-part1Box = new VBObox();
-part2Box = new VBObox2();
-part3Box = new VBObox3();
-part4Box = new VBObox4();
+part1Box = new VBObox(1, VertexShaderEnum.Phong, FragmentShaderEnum.Phong);
+part2Box = new VBObox(2, VertexShaderEnum.Phong, FragmentShaderEnum.BlinnPhong);
+part3Box = new VBObox(3, VertexShaderEnum.Gouraud, FragmentShaderEnum.Phong);
+part4Box = new VBObox(4, VertexShaderEnum.Gouraud, FragmentShaderEnum.BlinnPhong);
 
 // For animation:---------------------
 var g_lastMS = Date.now();			// Timestamp (in milliseconds) for our 

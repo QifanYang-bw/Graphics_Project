@@ -105,3 +105,7 @@ As each 'VBObox' object can contain:
 //=============================================================================
 //=============================================================================
 //=============================================================================
+// Qifan Yang
+// 2019.12.07 Added a common generator for glsl shader code, and reconstructed
+// the VBO box function to a general one that is applicable to be used in
+// multiple instances.
