@@ -393,12 +393,6 @@ VBObox1.prototype.switchToMe = function () {
   // establish new connections between our shader program's attributes and the VBO
   // we wish to use.  
 
-  this.a_PosLoc = gl.getAttribLocation(this.shaderLoc, 'a_Position' + this.sn + '');
-  if(this.a_PosLoc < 0) {
-    console.log(this.constructor.name + 
-                '.init() Failed to get GPU location of attribute a_Pos' + this.sn + '');
-    return -1;  // error exit.
-  }
     
   // b) call bindBuffer to disconnect the GPU from its currently-bound VBO and
   //  instead connect to our own already-created-&-filled VBO.  This new VBO can 
@@ -580,7 +574,7 @@ VBObox1.prototype.draw = function() {
 
 // }
 
-/*
+
 VBObox1.prototype.empty = function() {
 //=============================================================================
 // Remove/release all GPU resources used by this VBObox object, including any 
@@ -594,6 +588,9 @@ VBObox1.prototype.empty = function() {
 //
 //
 //
+
+  gl.deleteBuffer(this.vboLoc);
+  gl.deleteProgram(this.shaderLoc);
 }
 
 VBObox1.prototype.restore = function() {
@@ -609,4 +606,3 @@ VBObox1.prototype.restore = function() {
 //
 //
 }
-*/
