@@ -82,8 +82,10 @@ var lightSourceCount = 2;
 
 // For multiple VBOs & Shaders:-----------------
 worldBox = new VBObox0();		  // Holds VBO & shaders for 3D 'world' ground-plane grid, etc;
-part1Box = new VBObox1();		  // "  "  for first set of custom-shaded 3D parts
-part2Box = new VBObox2();     // "  "  for second set of custom-shaded 3D parts
+part1Box = new VBObox1();
+part2Box = new VBObox2();
+part3Box = new VBObox3();
+part4Box = new VBObox4();
 
 // For animation:---------------------
 var g_lastMS = Date.now();			// Timestamp (in milliseconds) for our 
@@ -116,8 +118,10 @@ var g_angleRate2 = -62.0;				// Rotation angle rate, in degrees/second.
 
 // For mouse/keyboard:------------------------
 var g_show0 = 1;								// 0==Show, 1==Hide VBO0 contents on-screen.
-var g_show1 = 1;								// 	"					"			VBO1		"				"				" 
-var g_show2 = 1;                //  "         "     VBO2    "       "       "
+var g_show1 = 1;
+var g_show2 = 1;
+var g_show3 = 1;
+var g_show4 = 1;
 
 // Camera Constants
 var vertexPool = {};
@@ -167,6 +171,8 @@ function main() {
                         // including ground-plane,                       
   part1Box.init(gl);		//  "		"		"  for 1st kind of shading & lighting
 	part2Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
+  part3Box.init(gl);    //  "   "   "  for 1st kind of shading & lighting
+  part4Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
 	
   gl.clearColor(0.2, 0.2, 0.2, 1);	  // RGBA color for clearing <canvas>
   gl.enable(gl.DEPTH_TEST);
@@ -338,19 +344,30 @@ function drawAll() {
 		worldBox.draw();			  // draw our VBO's contents using our shaders.
   }
 
-  // console.log('hibefore');
-  // console.log('chang', __cuon_matrix_mod_stack);
+  // console.log('before');
+  // console.log('length', __cuon_matrix_mod_stack);
+
   if(g_show1 == 1) { // IF user didn't press HTML button to 'hide' VBO1:
     part1Box.switchToMe();  // Set WebGL to render from this VBObox.
   	part1Box.adjust();		  // Send new values for uniforms to the GPU, and
   	part1Box.draw();			  // draw our VBO's contents using our shaders.
 	}
 
-  // console.log('hi');
-	if(g_show2 == 1) { // IF user didn't press HTML button to 'hide' VBO2:
+	if(g_show2 == 0) { // IF user didn't press HTML button to 'hide' VBO2:
 	  part2Box.switchToMe();  // Set WebGL to render from this VBObox.
   	part2Box.adjust();		  // Send new values for uniforms to the GPU, and
   	part2Box.draw();			  // draw our VBO's contents using our shaders.
+  }
+
+  if(g_show3 == 0) { // IF user didn't press HTML button to 'hide' VBO2:
+    part3Box.switchToMe();  // Set WebGL to render from this VBObox.
+    part3Box.adjust();      // Send new values for uniforms to the GPU, and
+    part3Box.draw();        // draw our VBO's contents using our shaders.
+  }
+  if(g_show4 == 0) { // IF user didn't press HTML button to 'hide' VBO2:
+    part4Box.switchToMe();  // Set WebGL to render from this VBObox.
+    part4Box.adjust();      // Send new values for uniforms to the GPU, and
+    part4Box.draw();        // draw our VBO's contents using our shaders.
   }
 /* // ?How slow is our own code?  	
 var aftrDraw = Date.now();
@@ -385,6 +402,23 @@ function VBO2toggle() {
   else g_show2 = 0;									// hide.
   console.log('g_show2: '+g_show2);
 }
+
+function VBO3toggle() {
+//=============================================================================
+// Called when user presses HTML-5 button 'Show/Hide VBO1'.
+  if(g_show3 != 1) g_show3 = 1;     // show,
+  else g_show3 = 0;                 // hide.
+  console.log('g_show3: ' + g_show4);
+}
+
+function VBO4toggle() {
+//=============================================================================
+// Called when user presses HTML-5 button 'Show/Hide VBO2'.
+  if(g_show4 != 1) g_show4 = 1;     // show,
+  else g_show4 = 0;                 // hide.
+  console.log('g_show4: ' + g_show4);
+}
+
 
 function myKeyDown(kev) {
 //===============================================================================
