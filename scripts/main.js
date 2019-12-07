@@ -82,7 +82,7 @@ var lightSourceCount = 2;
 
 // For multiple VBOs & Shaders:-----------------
 worldBox = new VBObox0();		  // Holds VBO & shaders for 3D 'world' ground-plane grid, etc;
-part1Box = new VBObox1();
+part1Box = new VBObox();
 part2Box = new VBObox2();
 part3Box = new VBObox3();
 part4Box = new VBObox4();
