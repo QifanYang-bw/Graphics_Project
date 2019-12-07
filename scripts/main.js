@@ -136,6 +136,24 @@ var STEP1 = 0.15;
 var STEP2 = 0.01;
 var JUDGE = -1;
 
+
+
+function canvasInit() {
+
+  // Set up Light sources before all VBO Boxes
+  setLights();
+
+
+
+  // Initialize each of our 'vboBox' objects: 
+  worldBox.init(gl);    // VBO + shaders + uniforms + attribs for our 3D world,
+                        // including ground-plane,                       
+  part1Box.init(gl);    //  "   "   "  for 1st kind of shading & lighting
+  part2Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
+  part3Box.init(gl);    //  "   "   "  for 1st kind of shading & lighting
+  part4Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
+}
+
 function main() {
 //=============================================================================
   // Retrieve the HTML-5 <canvas> element where webGL will draw our pictures:
@@ -163,18 +181,9 @@ function main() {
 
   window.addEventListener("keydown", myKeyDown, false);
 
-  // Set up Light sources before all VBO Boxes
-  setLights();
-
-  // Initialize each of our 'vboBox' objects: 
-  worldBox.init(gl);		// VBO + shaders + uniforms + attribs for our 3D world,
-                        // including ground-plane,                       
-  part1Box.init(gl);		//  "		"		"  for 1st kind of shading & lighting
-	part2Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
-  part3Box.init(gl);    //  "   "   "  for 1st kind of shading & lighting
-  part4Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
+  canvasInit();
 	
-  gl.clearColor(0.2, 0.2, 0.2, 1);	  // RGBA color for clearing <canvas>
+  gl.clearColor(0.1, 0.1, 0.1, 1);	  // RGBA color for clearing <canvas>
   gl.enable(gl.DEPTH_TEST);
   
   // ==============ANIMATION=============

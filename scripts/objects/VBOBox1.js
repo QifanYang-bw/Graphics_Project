@@ -94,24 +94,15 @@ var matlSel= MATL_RED_PLASTIC;        // see keypress(): 'm' key changes matlSel
 var matl0 = new Material(matlSel);  
 //  ... for our first light source:   (stays false if never initialized)
 
+var shaders = new shaderLib();
 
-function VBObox1() {
+function VBObox(sn) {
   //=============================================================================
   //=============================================================================
-  // CONSTRUCTOR for one re-usable 'VBObox1' object that holds all data and fcns
+  // CONSTRUCTOR for one re-usable 'VBObox' object that holds all data and fcns
   // needed to render vertices from one Vertex Buffer Object (VBO) using one 
   // separate shader program (a vertex-shader & fragment-shader pair) and one
   // set of 'uniform' variables.
-
-  // Constructor goal: 
-  // Create and set member vars that will ELIMINATE ALL LITERALS (numerical values 
-  // written into code) in all other VBObox functions. Keeping all these (initial)
-  // values here, in this one coonstrutor function, ensures we can change them 
-  // easily WIsTHOUT disrupting any other code, ever!
-
-  // In Gouraud Shading, the color for the fragment is computed in the Vertex Shader.
-  // Whereas, in Phong Shading, the color for the fragment is computed in the
-  // Fragment Shader.
 
   //=============================================================================
   // Vertex shader program: Phong Shading
@@ -119,149 +110,15 @@ function VBObox1() {
   // Reason for adding a '1':
   // https://gamedev.stackexchange.com/questions/61257/glsl-declaring-global-variables-outside-of-the-main-function-scope
 
-  this.sn = 1;
-  this.VERT_SRC =
-    //-------------Set precision.
-    // GLSL-ES 2.0 defaults (from spec; '4.5.3 Default Precision Qualifiers'):
-    // DEFAULT for Vertex Shaders:  precision highp float; precision highp int;
-    //                  precision lowp sampler2D; precision lowp samplerCube;
-    // DEFAULT for Fragment Shaders:  UNDEFINED for float; precision mediump int;
-    //                  precision lowp sampler2D; precision lowp samplerCube;
-    //--------------- GLSL Struct Definitions:
-    'struct MatlT {\n' +    // Describes one Phong material by its reflectances:
-    '   vec3 emit;\n' +     // Ke: emissive -- surface 'glow' amount (r,g,b);
-    '   vec3 ambi;\n' +     // Ka: ambient reflectance (r,g,b)
-    '   vec3 diff;\n' +     // Kd: diffuse reflectance (r,g,b)
-    '   vec3 spec;\n' +     // Ks: specular reflectance (r,g,b)
-    '   int shiny;\n' +     // Kshiny: specular exponent (integer >= 1; typ. <200)
-    '};\n' +
-    //                                
-    //-------------ATTRIBUTES of each vertex, read from our Vertex Buffer Object
-    'attribute vec4 a_Position' + this.sn + '; \n' +   // vertex position (model coord sys)
+  this.sn = sn;
 
-                      
-    //-------------UNIFORMS: values set from JavaScript before a drawing command.
-    //  'uniform vec3 u_Kd; \n' +           // Phong diffuse reflectance for the 
-                                        // entire shape. Later: as vertex attrib.
-    'uniform MatlT u_MatlSet' + this.sn + '[1];\n' +   // Array of all materials.
-    'uniform mat4 u_MvpMatrix' + this.sn + '; \n' +
-    'uniform mat4 u_ModelMatrix' + this.sn + '; \n' +    // Model matrix
-    'uniform mat4 u_NormalMatrix' + this.sn + '; \n' +   // Inverse Transpose of ModelMatrix;
-                                          // (won't distort normal vec directions
-                                          // but it usually WILL change its length)
-    
-    //-------------VARYING:Vertex Shader values sent per-pixel to Fragment shader:
-    'varying vec3 v_Kd' + this.sn + '; \n' +             // Phong Lighting: diffuse reflectance
-                                          // (I didn't make per-pixel Ke,Ka,Ks;
-                                          // we use 'uniform' values instead)
-    'varying vec4 v_Position' + this.sn + '; \n' +       
-    'varying vec3 v_Normal' + this.sn + '; \n' +         // Why Vec3? its not a point, hence w==0
-    //-------------------------------------------- ---------------------------------
-    'void main() { \n' +  
-      // Compute CVV coordinate values from our given vertex. This 'built-in'
-      // 'varying' value gets interpolated to set screen position for each pixel.
-    '  gl_Position = u_MvpMatrix' + this.sn + ' * a_Position' + this.sn + ';\n' +
-      // Calculate the vertex position & normal vec in the WORLD coordinate system
-      // for use as a 'varying' variable: fragment shaders get per-pixel values
-      // (interpolated between vertices for our drawing primitive (TRIANGLE)).
-    '  v_Position' + this.sn + ' = u_ModelMatrix' + this.sn + ' * a_Position' + this.sn + '; \n' +
-      // 3D surface normal of our vertex, in world coords.  ('varying'--its value
-      // gets interpolated (in world coords) for each pixel's fragment shader.
-    '  v_Normal' + this.sn + ' = normalize(vec3(u_NormalMatrix' + this.sn + ' * a_Position' + this.sn + '));\n' +
-    '  v_Kd' + this.sn + ' = u_MatlSet' + this.sn + '[0].diff; \n' +    // find per-pixel diffuse reflectance from per-vertex
-                            // (no per-pixel Ke,Ka, or Ks, but you can do it...)
-    //  '  v_Kd = vec3(1.0, 1.0, 0.0); \n'  + // TEST; color fixed at green
-    '}\n';
+  shaders.setSerialNumber(this.sn);
+  shaders.setShader(VertexShaderEnum.Phong, FragmentShaderEnum.Phong);
+  shaders.generateShader();
 
-  //=============================================================================
-  // Fragment shader program: Blinn Phong
-  //=============================================================================
-  this.FRAG_SRC =
-    //-------------Set precision.
-    // GLSL-ES 2.0 defaults (from spec; '4.5.3 Default Precision Qualifiers'):
-    // DEFAULT for Vertex Shaders:  precision highp float; precision highp int;
-    //                  precision lowp sampler2D; precision lowp samplerCube;
-    // DEFAULT for Fragment Shaders:  UNDEFINED for float; precision mediump int;
-    //                  precision lowp sampler2D; precision lowp samplerCube;
-    // MATCH the Vertex shader precision for float and int:
-    'precision highp float;\n' +
-    'precision highp int;\n' +
-    //
-    //--------------- GLSL Struct Definitions:
-    'struct LampT {\n' +    // Describes one point-like Phong light source
-    '   vec3 pos;\n' +      // (x,y,z,w); w==1.0 for local light at x,y,z position
-                            //       w==0.0 for distant light from x,y,z direction 
-    '   vec3 ambi;\n' +     // Ia ==  ambient light source strength (r,g,b)
-    '   vec3 diff;\n' +     // Id ==  diffuse light source strength (r,g,b)
-    '   vec3 spec;\n' +     // Is == specular light source strength (r,g,b)
-    '}; \n' +
-    //
-    'struct MatlT {\n' +    // Describes one Phong material by its reflectances:
-    '   vec3 emit;\n' +     // Ke: emissive -- surface 'glow' amount (r,g,b);
-    '   vec3 ambi;\n' +     // Ka: ambient reflectance (r,g,b)
-    '   vec3 diff;\n' +     // Kd: diffuse reflectance (r,g,b)
-    '   vec3 spec;\n' +     // Ks: specular reflectance (r,g,b)
-    '   int shiny;\n' +     // Kshiny: specular exponent (integer >= 1; typ. <200)
-    '};\n' +
+  this.VERT_SRC = shaders.getVertexShader() 
+  this.FRAG_SRC = shaders.getFragmentShader() 
 
-    //-------------UNIFORMS: values set from JavaScript before a drawing command.
-
-    // Tip: GLSL loops are un-rolled into native GPU instructions. This means there
-    // needs to be a hard upper limit to the number of passes through the for loop,
-    // that governs how many copies of the loop's inner code will be generated. If you
-    // replace this with a const float or even a #define directive, the shader compiler
-    // can then determine the number of passes at compile time, and generate the code
-    // accordingly. But with a uniform there, the upper limit is not known at compile time.
-
-    // Ref: https://stackoverflow.com/questions/38986208/webgl-loop-index-cannot-be-compared-with-non-constant-expression
-
-    // tl;dr: Use const float for loop variables and comparisons.
-
-    // Light source
-    'const int u_LampCount' + this.sn + ' = ' + lightSourceCount + ';\n' +
-    'uniform LampT u_LampSet' + this.sn + '[' + lightSourceCount + '];\n' +   // Array of all light sources.
-    'uniform MatlT u_MatlSet' + this.sn + '[1];\n' +   // Array of all materials.
-    //
-    'uniform vec3 u_eyePosWorld' + this.sn + '; \n' +  // Camera/eye location in world coords.
-    
-    //-------------VARYING:Vertex Shader values sent per-pixel to Fragment shader: 
-    'varying vec3 v_Normal' + this.sn + ';\n' +        // Find 3D surface normal at each pix
-    'varying vec4 v_Position' + this.sn + ';\n' +      // pixel's 3D pos too -- in 'world' coords
-    'varying vec3 v_Kd' + this.sn + '; \n' +           // Find diffuse reflectance K_d per pix
-                              // Ambient? Emissive? Specular? almost
-                              // NEVER change per-vertex: I use 'uniform' values
-
-    'void main() { \n' +
-        // Normalize! !!IMPORTANT!! TROUBLE if you don't! 
-        // normals interpolated for each pixel aren't 1.0 in length any more!
-    '  vec3 normal = normalize(v_Normal' + this.sn + '); \n' +
-    '  vec3 ambient = vec3(0.0, 0.0, 0.0), diffuse = vec3(0.0, 0.0, 0.0), speculr = vec3(0.0, 0.0, 0.0);' + 
-
-    '  for (int i = 0; i < u_LampCount' + this.sn + '; i+=1) {' + 
-
-    '    vec3 lightDirection = normalize(u_LampSet' + this.sn + '[i].pos - v_Position' + this.sn + '.xyz);\n' +
-    '    vec3 eyeDirection = normalize(u_eyePosWorld' + this.sn + ' - v_Position' + this.sn + '.xyz); \n' +
-
-        // Diffusal
-    '    float nDotL = max(dot(lightDirection, normal), 0.0); \n' +
-
-        // Specular (Phong)
-    '    vec3 C = normal * dot(lightDirection, normal); \n' +
-    '    vec3 reflectDirection = 2. * C - lightDirection; \n' +
-    '    float RdotV = max(dot(reflectDirection, eyeDirection), 0.); \n' +
-    '    float e64 = pow(RdotV, float(u_MatlSet' + this.sn + '[0].shiny)); \n' +
-
-    '    ambient = ambient + u_LampSet' + this.sn + '[i].ambi * u_MatlSet' + this.sn + '[0].ambi;\n' +
-    '    diffuse = diffuse + u_LampSet' + this.sn + '[i].diff * v_Kd' + this.sn + ' * nDotL;\n' +
-    '    speculr = speculr + u_LampSet' + this.sn + '[i].spec * u_MatlSet' + this.sn + '[0].spec * e64;\n' +
-    '  }' +
-
-    '  vec3 emissive = u_MatlSet' + this.sn + '[0].emit;' + 
-
-    '  gl_FragColor = vec4(emissive + ambient + diffuse + speculr, 1.0);\n' +
-    '}\n';
-
-  // console.log(lightSourceCount);
   this.vboContents = [];
 
   this.vboContents = makeSphere();
@@ -301,7 +158,7 @@ function VBObox1() {
 };
 
 
-VBObox1.prototype.init = function() {
+VBObox.prototype.init = function() {
   //==============================================================================
   // Prepare the GPU to use all vertices, GLSL shaders, attributes, & uniforms 
   // kept in this VBObox. (This function usually called only once, within main()).
@@ -371,7 +228,7 @@ VBObox1.prototype.init = function() {
 
 }
 
-VBObox1.prototype.switchToMe = function () {
+VBObox.prototype.switchToMe = function () {
 
   //==============================================================================
   // Set GPU to use this VBObox's contents (VBO, shader, attributes, uniforms...)
@@ -460,7 +317,7 @@ VBObox1.prototype.switchToMe = function () {
 
 }
 
-VBObox1.prototype.isReady = function() {
+VBObox.prototype.isReady = function() {
 //==============================================================================
 // Returns 'true' if our WebGL rendering context ('gl') is ready to render using
 // this objects VBO and shader program; else return false.
@@ -481,7 +338,7 @@ var isOK = true;
   return isOK;
 }
 
-VBObox1.prototype.adjust = function() {
+VBObox.prototype.adjust = function() {
 //==============================================================================
 // Update the GPU to newer, current values we now store for 'uniform' vars on 
 // the GPU; and (if needed) update each attribute's stride and offset in VBO.
@@ -519,7 +376,7 @@ VBObox1.prototype.adjust = function() {
 
 }
 
-VBObox1.prototype.draw = function() {
+VBObox.prototype.draw = function() {
 //=============================================================================
 // Send commands to GPU to select and render current VBObox contents.
 
@@ -561,7 +418,7 @@ VBObox1.prototype.draw = function() {
 }
 
 
-// VBObox1.prototype.reload = function() {
+// VBObox.prototype.reload = function() {
 //=============================================================================
 // Over-write current values in the GPU for our already-created VBO: use 
 // gl.bufferSubData() call to re-transfer some or all of our Float32Array 
@@ -575,7 +432,7 @@ VBObox1.prototype.draw = function() {
 // }
 
 
-VBObox1.prototype.empty = function() {
+VBObox.prototype.empty = function() {
 //=============================================================================
 // Remove/release all GPU resources used by this VBObox object, including any 
 // shader programs, attributes, uniforms, textures, samplers or other claims on 
@@ -593,16 +450,16 @@ VBObox1.prototype.empty = function() {
   gl.deleteProgram(this.shaderLoc);
 }
 
-VBObox1.prototype.restore = function() {
-//=============================================================================
-// Replace/restore all GPU resources used by this VBObox object, including any 
-// shader programs, attributes, uniforms, textures, samplers or other claims on 
-// GPU memory.  Use our retained Float32Array data, all values for  uniforms, 
-// all stride and offset values, etc.
-//
-//
-//    ********   YOU WRITE THIS! ********
-//
-//
-//
-}
+// VBObox.prototype.restore = function() {
+// //=============================================================================
+// // Replace/restore all GPU resources used by this VBObox object, including any 
+// // shader programs, attributes, uniforms, textures, samplers or other claims on 
+// // GPU memory.  Use our retained Float32Array data, all values for  uniforms, 
+// // all stride and offset values, etc.
+// //
+// //
+// //    ********   YOU WRITE THIS! ********
+// //
+// //
+// //
+// }
