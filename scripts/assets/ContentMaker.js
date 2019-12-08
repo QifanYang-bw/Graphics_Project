@@ -6,7 +6,7 @@
 
 var floatsPerPosition = 4;
 
-var floatsPerVertex = 7;  // # of Float32Array elements used for each vertex
+var floatsPerVertex = 8;  // # of Float32Array elements used for each vertex
 var gndVerts, gndVertsCount = 0;
 
 function makeGroundGrid() {
@@ -19,8 +19,8 @@ function makeGroundGrid() {
   var xcount = 100;     // # of lines to draw in x,y to make the grid.
   var ycount = 100;   
   var xymax = 50.0;     // grid size; extends to cover +/-xymax in x and y.
-  var xColr = new Float32Array([1.0, 1.0, 0.3]);  // bright yellow
-  var yColr = new Float32Array([0.5, 1.0, 0.5]);  // bright green.
+  var xColr = new Float32Array([1.0, 1.0, 0.3, 1.0]);  // bright yellow
+  var yColr = new Float32Array([0.5, 1.0, 0.5, 1.0]);  // bright green.
   
   gndVertsCount = 2*(xcount+ycount);
   // Create an (global) array to hold this ground-plane's vertices:
@@ -47,6 +47,7 @@ function makeGroundGrid() {
     gndVerts[j+4] = xColr[0];     // red
     gndVerts[j+5] = xColr[1];     // grn
     gndVerts[j+6] = xColr[2];     // blu
+    gndVerts[j+7] = xColr[3];     // blu
   }
   // Second, step thru y values as wqe make horizontal lines of constant-y:
   // (don't re-initialize j--we're adding more vertices to the array)
@@ -66,6 +67,7 @@ function makeGroundGrid() {
     gndVerts[j+4] = yColr[0];     // red
     gndVerts[j+5] = yColr[1];     // grn
     gndVerts[j+6] = yColr[2];     // blu
+    gndVerts[j+7] = yColr[3];     // blu
   }
 }
 

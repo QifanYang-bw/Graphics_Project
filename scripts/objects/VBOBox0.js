@@ -58,7 +58,7 @@ function VBObox0() {
   	            //----------------------Attribute sizes
     this.vboFcount_a_Pos0 =  4;    // # of floats in the VBO needed to store the
                                   // attribute named a_Pos0. (4: x,y,z,w values)
-    this.vboFcount_a_Colr0 = 3;   // # of floats for this attrib (r,g,b values) 
+    this.vboFcount_a_Colr0 = 4;   // # of floats for this attrib (r,g,b values) 
 
     console.assert((this.vboFcount_a_Pos0 +     // check the size of each and
                     this.vboFcount_a_Colr0) *   // every attribute in our VBO
