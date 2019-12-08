@@ -112,7 +112,6 @@ function VBObox(sn, vertexShader, fragmentShader) {
 
   this.sn = sn;
 
-  shaders.setSerialNumber(this.sn);
   shaders.setShader(vertexShader, fragmentShader);
   shaders.generateShader();
 
@@ -245,16 +244,16 @@ VBObox.prototype.init = function() {
   //  Find & save the GPU location of all our shaders' attribute-variables and 
   //  uniform-variables (for switchToMe(), adjust(), draw(), reload(), etc.)
 
-  this.a_PosLoc = gl.getAttribLocation(this.shaderLoc, 'a_Position' + this.sn);
+  this.a_PosLoc = gl.getAttribLocation(this.shaderLoc, 'a_Position');
   if(this.a_PosLoc < 0) {
     console.log(this.constructor.name + 
-                '.init() Failed to get GPU location of attribute a_Position' + this.sn);
+                '.init() Failed to get GPU location of attribute a_Position');
     return -1;  // error exit.
   }
-  this.a_ColorLoc = gl.getAttribLocation(this.shaderLoc, 'a_Color' + this.sn);
+  this.a_ColorLoc = gl.getAttribLocation(this.shaderLoc, 'a_Color');
   if(this.a_ColorLoc < 0) {
     console.log(this.constructor.name + 
-                '.init() failed to get the GPU location of attribute a_Color' + this.sn);
+                '.init() failed to get the GPU location of attribute a_Color');
     return -1;  // error exit.
   }
 
@@ -315,26 +314,26 @@ VBObox.prototype.switchToMe = function () {
 
     // Create, save the storage locations of uniform variables: ... for the scene
     // (Version 03: changed these to global vars (DANGER!) for use inside any func)
-    this.uLoc_eyePosWorld  = gl.getUniformLocation(gl.program, 'u_eyePosWorld' + this.sn + '');
-    this.uLoc_ModelMatrix  = gl.getUniformLocation(gl.program, 'u_ModelMatrix' + this.sn + '');
-    this.uLoc_MvpMatrix    = gl.getUniformLocation(gl.program, 'u_MvpMatrix' + this.sn + '');
-    this.uLoc_NormalMatrix = gl.getUniformLocation(gl.program, 'u_NormalMatrix' + this.sn + '');
+    this.uLoc_eyePosWorld  = gl.getUniformLocation(gl.program, 'u_eyePosWorld');
+    this.uLoc_ModelMatrix  = gl.getUniformLocation(gl.program, 'u_ModelMatrix');
+    this.uLoc_MvpMatrix    = gl.getUniformLocation(gl.program, 'u_MvpMatrix');
+    this.uLoc_NormalMatrix = gl.getUniformLocation(gl.program, 'u_NormalMatrix');
     if (!this.uLoc_eyePosWorld ||
         !this.uLoc_ModelMatrix || !this.uLoc_MvpMatrix || !this.uLoc_NormalMatrix) {
       console.log('Failed to get GPUs matrix storage locations');
       return;
     }
 
-    this.uLoc_useColor = gl.getUniformLocation(gl.program, 'u_useColor' + this.sn + '');
+    this.uLoc_useColor = gl.getUniformLocation(gl.program, 'u_useColor');
 
     //  ... for Phong light source:
     // NEW!  Note we're getting the location of a GLSL struct array member:
 
     for (var i = 0; i < lightSourceCount; i++) {
-      lightSource[i].u_pos  = gl.getUniformLocation(gl.program, 'u_LampSet' + this.sn + '[' + i + '].pos'); 
-      lightSource[i].u_ambi = gl.getUniformLocation(gl.program, 'u_LampSet' + this.sn + '[' + i + '].ambi');
-      lightSource[i].u_diff = gl.getUniformLocation(gl.program, 'u_LampSet' + this.sn + '[' + i + '].diff');
-      lightSource[i].u_spec = gl.getUniformLocation(gl.program, 'u_LampSet' + this.sn + '[' + i + '].spec');
+      lightSource[i].u_pos  = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].pos'); 
+      lightSource[i].u_ambi = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].ambi');
+      lightSource[i].u_diff = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].diff');
+      lightSource[i].u_spec = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].spec');
       if( !lightSource[i].u_pos || !lightSource[i].u_ambi || !lightSource[i].u_diff || !lightSource[i].u_spec ) {
         console.log('Failed to get GPU\'s lightSource[' + i + '] storage locations');
         return;
@@ -342,11 +341,11 @@ VBObox.prototype.switchToMe = function () {
     }
 
     // ... for Phong material/reflectance:
-    matl0.uLoc_Ke = gl.getUniformLocation(gl.program, 'u_MatlSet' + this.sn + '[0].emit');
-    matl0.uLoc_Ka = gl.getUniformLocation(gl.program, 'u_MatlSet' + this.sn + '[0].ambi');
-    matl0.uLoc_Kd = gl.getUniformLocation(gl.program, 'u_MatlSet' + this.sn + '[0].diff');
-    matl0.uLoc_Ks = gl.getUniformLocation(gl.program, 'u_MatlSet' + this.sn + '[0].spec');
-    matl0.uLoc_Kshiny = gl.getUniformLocation(gl.program, 'u_MatlSet' + this.sn + '[0].shiny');
+    matl0.uLoc_Ke = gl.getUniformLocation(gl.program, 'u_MatlSet[0].emit');
+    matl0.uLoc_Ka = gl.getUniformLocation(gl.program, 'u_MatlSet[0].ambi');
+    matl0.uLoc_Kd = gl.getUniformLocation(gl.program, 'u_MatlSet[0].diff');
+    matl0.uLoc_Ks = gl.getUniformLocation(gl.program, 'u_MatlSet[0].spec');
+    matl0.uLoc_Kshiny = gl.getUniformLocation(gl.program, 'u_MatlSet[0].shiny');
     if(!matl0.uLoc_Ke || !matl0.uLoc_Ka || !matl0.uLoc_Kd 
                       || !matl0.uLoc_Ks || !matl0.uLoc_Kshiny
        ) {
