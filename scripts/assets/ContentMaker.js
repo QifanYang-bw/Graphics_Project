@@ -7,6 +7,7 @@
 var floatsPerPosition = 4;
 
 var floatsPerVertex = 8;  // # of Float32Array elements used for each vertex
+
 var gndVerts, gndVertsCount = 0;
 
 function makeGroundGrid() {
@@ -87,8 +88,6 @@ function makeSphere() {
   // Based on the original code, this one patches the 'erroreous' fragment on 
   // each layer.
 
-  var sphVertsCount;
-
   var slices = 12;   // # of slices of the sphere along the z axis, including 
                     // the south-pole and north pole end caps. ( >=2 req'd)
   var sliceVerts  = 21; // # of vertices around the top edge of the slice
@@ -101,7 +100,7 @@ function makeSphere() {
   // rray to hold this sphere's vertices:
   var sphVertsCount = (slices*2*(sliceVerts+1)) -2;
 
-  var sphVerts = new Float32Array( sphVertsCount * floatsPerPosition);
+  var sphVerts = new Float32Array( sphVertsCount * floatsPerVertex);
                     // # of vertices * # of elements needed to store them. 
                     // Each end-cap slice requires (2*sliceVerts -1) vertices 
                     // and each slice between them requires (2*sliceVerts).
@@ -118,6 +117,9 @@ function makeSphere() {
   //          its v var counts vertices; 
   //          its j var counts Float32Array elements 
   //          (vertices * elements per vertex)  
+
+
+  var color = new Float32Array([0.6, 0.0, 0.0, 1.0]);  // South Pole: dark-gray
 
   var j = 0;              // initialize our array index
   var isFirstSlice = 1;   // ==1 ONLY while making south-pole slice; 0 otherwise
@@ -150,7 +152,7 @@ function makeSphere() {
     //    because its last vertex is on the BOTTOM (southwards) side of slice.
     //
     if (s == slices-1) isLastSlice=1;// (flag: skip last vertex of the last slice).
-    for (v = isFirstSlice; v < 2 * (sliceVerts + 1) - isLastSlice; v++, j+=floatsPerPosition)
+    for (v = isFirstSlice; v < 2 * (sliceVerts + 1) - isLastSlice; v++, j+=floatsPerVertex)
     {           // for each vertex of this slice,
       if(v%2 ==0) { // put vertices with even-numbered v at slice's bottom edge;
                     // by circling CCW along longitude (east-west) angle 'theta':
@@ -171,6 +173,12 @@ function makeSphere() {
         sphVerts[j+2] = sinTop;   // z
         sphVerts[j+3] = 1.0;  
       }
+
+      sphVerts[j+4]=color[0]; 
+      sphVerts[j+5]=color[1]; 
+      sphVerts[j+6]=color[2]; 
+      sphVerts[j+7]=color[3]; 
+
     }
   }
 
@@ -178,16 +186,6 @@ function makeSphere() {
   return sphVerts;
 }
 
-
-function initArrayBuffer(gl, buffer, data) {
-//-------------------------------------------------------------------------------
-
-  // Write date into the buffer object
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
-
-  return;
-}
 
 function enableArrayBuffer(gl, buffer, attribute, type, num) {
 //-------------------------------------------------------------------------------
