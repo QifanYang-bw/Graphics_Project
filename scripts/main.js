@@ -81,42 +81,32 @@ var lightSource = [];
 var lightSourceCount = 2;
 
 // For multiple VBOs & Shaders:-----------------
-worldBox = new VBObox0();		  // Holds VBO & shaders for 3D 'world' ground-plane grid, etc;
-part1Box = new VBObox(1, VertexShaderEnum.Phong, FragmentShaderEnum.Phong);
-part2Box = new VBObox(2, VertexShaderEnum.Phong, FragmentShaderEnum.BlinnPhong);
-part3Box = new VBObox(3, VertexShaderEnum.Gouraud, FragmentShaderEnum.Phong);
-part4Box = new VBObox(4, VertexShaderEnum.Gouraud, FragmentShaderEnum.BlinnPhong);
+var worldBox, part1Box, part2Box, part3Box, part4Box;
 
-// For animation:---------------------
-var g_lastMS = Date.now();			// Timestamp (in milliseconds) for our 
-                                // most-recently-drawn WebGL screen contents.  
-                                // Set & used by moveAll() fcn to update all
-                                // time-varying params for our webGL drawings.
-  // All time-dependent params (you can add more!)
-// var g_angleNow0  =  0.0; 			  // Current rotation angle, in degrees.
-// var g_angleRate0 = 45.0;				// Rotation angle rate, in degrees/second.
-                                //---------------
-var g_angleNow1  = 100.0;       // current angle, in degrees
-var g_angleRate1 =  95.0;        // rotation angle rate, degrees/sec
-// var g_angleMax1  = 150.0;       // max, min allowed angle, in degrees
-// var g_angleMin1  =  60.0;
-                                //---------------
-var g_angleNow2  =  0.0; 			  // Current rotation angle, in degrees.
-var g_angleRate2 = -62.0;				// Rotation angle rate, in degrees/second.
+//----------------------------- Animation ----------------------------
+var g_isRun = true;                 // run/stop for animation; used in tick().
+var g_last = Date.now();          // Timestamp for most-recently-drawn image; 
+                                    // in milliseconds; used by 'animate()' fcn 
+                                    // (now called 'timerAll()' ) to find time
+                                    // elapsed since last on-screen image.
 
-                                //---------------
-// var g_posNow0 =  0.0;           // current position
-// var g_posRate0 = 0.6;           // position change rate, in distance/second.
-// var g_posMax0 =  0.5;           // max, min allowed for g_posNow;
-// var g_posMin0 = -0.5;           
-                                // ------------------
-// var g_posNow1 =  0.0;           // current position
-// var g_posRate1 = 0.5;           // position change rate, in distance/second.
-// var g_posMax1 =  1.0;           // max, min allowed positions
-// var g_posMin1 = -1.0;
-                                //---------------
+// Rotation multiplication factor for speed control and pausing
+var g_rateBoostingFactor = 1.0;     
 
-// For mouse/keyboard:------------------------
+var g_modelMatLoc;                  // that uniform's location in the GPU
+
+//------------For mouse click-and-drag: -------------------------------
+var g_isDrag = false;   // mouse-drag: true when user holds down mouse button
+var g_xMclik = 0.0;     // last mouse button-down position (in CVV coords)
+var g_yMclik = 0.0;   
+var g_xMdragTot = 0.0;  // total (accumulated) mouse-drag amounts (in CVV coords).
+var g_yMdragTot = 0.0;  
+
+
+//------------Special function: For jumping -------------------------------
+var jumpSignal = false;
+
+// VBO Box Status
 var g_show0 = 1;								// 0==Show, 1==Hide VBO0 contents on-screen.
 var g_show1 = 1;
 var g_show2 = 1;
@@ -139,19 +129,28 @@ var JUDGE = -1;
 
 
 function canvasInit() {
+  
+  makeAll();
 
+  console.log(vertexPool);
+  console.log(vboVerts);
   // Set up Light sources before all VBO Boxes
   setLights();
 
 
+  worldBox = new VBObox0();     // Holds VBO & shaders for 3D 'world' ground-plane grid, etc;
+  part1Box = new VBObox(1, VertexShaderEnum.Phong, FragmentShaderEnum.Phong);
+  // part2Box = new VBObox(2, VertexShaderEnum.Phong, FragmentShaderEnum.BlinnPhong);
+  // part3Box = new VBObox(3, VertexShaderEnum.Gouraud, FragmentShaderEnum.Phong);
+  // part4Box = new VBObox(4, VertexShaderEnum.Gouraud, FragmentShaderEnum.BlinnPhong);
 
   // Initialize each of our 'vboBox' objects: 
   worldBox.init(gl);    // VBO + shaders + uniforms + attribs for our 3D world,
                         // including ground-plane,                       
   part1Box.init(gl);    //  "   "   "  for 1st kind of shading & lighting
-  part2Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
-  part3Box.init(gl);    //  "   "   "  for 1st kind of shading & lighting
-  part4Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
+  // part2Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
+  // part3Box.init(gl);    //  "   "   "  for 1st kind of shading & lighting
+  // part4Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
 }
 
 function main() {
@@ -208,9 +207,9 @@ function main() {
                                 // self-calling animation function. 
     requestAnimationFrame(tick, g_canvasID); // browser callback request; wait
                                 // til browser is ready to re-draw canvas, then
-    timerAll();  // Update all time-varying params, and
-    drawAll();                // Draw all the VBObox contents
-    };
+    animate();                  // Update all time-varying params, and
+    drawVBOBox();                  // Draw all the VBObox contents
+  };
   //------------------------------------
   tick();                       // do it again!
 }
@@ -232,91 +231,91 @@ function setLights() {
   lightSource[1].I_spec.elements.set([0.8, 0.8, 0.8]);
 }
 
-function timerAll() {
-//=============================================================================
-// Find new values for all time-varying parameters used for on-screen drawing
-  // use local variables to find the elapsed time.
-  var nowMS = Date.now();             // current time (in milliseconds)
-  var elapsedMS = nowMS - g_lastMS;   // 
-  g_lastMS = nowMS;                   // update for next webGL drawing.
-  if(elapsedMS > 1000.0) {            
-    // Browsers won't re-draw 'canvas' element that isn't visible on-screen 
-    // (user chose a different browser tab, etc.); when users make the browser
-    // window visible again our resulting 'elapsedMS' value has gotten HUGE.
-    // Instead of allowing a HUGE change in all our time-dependent parameters,
-    // let's pretend that only a nominal 1/30th second passed:
-    elapsedMS = 1000.0/30.0;
-    }
+// function timerAll() {
+// //=============================================================================
+// // Find new values for all time-varying parameters used for on-screen drawing
+//   // use local variables to find the elapsed time.
+//   var nowMS = Date.now();             // current time (in milliseconds)
+//   var elapsedMS = nowMS - g_last;   // 
+//   g_last = nowMS;                   // update for next webGL drawing.
+//   if(elapsedMS > 1000.0) {            
+//     // Browsers won't re-draw 'canvas' element that isn't visible on-screen 
+//     // (user chose a different browser tab, etc.); when users make the browser
+//     // window visible again our resulting 'elapsedMS' value has gotten HUGE.
+//     // Instead of allowing a HUGE change in all our time-dependent parameters,
+//     // let's pretend that only a nominal 1/30th second passed:
+//     elapsedMS = 1000.0/30.0;
+//     }
 
 
-  // Find new time-dependent parameters using the current or elapsed time:
-  // Continuous rotation:
-  // g_angleNow0 = g_angleNow0 + (g_angleRate0 * elapsedMS) / 1000.0;
-  g_angleNow1 = g_angleNow1 + (g_angleRate1 * elapsedMS) / 4000.0;
-  g_angleNow2 = g_angleNow2 + (g_angleRate2 * elapsedMS) / 3000.0;
-  // g_angleNow0 %= 360.0;   // keep angle >=0.0 and <360.0 degrees  
-  // g_angleNow1 %= 360.0;   
-  // g_angleNow2 %= 360.0;
-  // if(g_angleNow1 > g_angleMax1) { // above the max?
-  //   g_angleNow1 = g_angleMax1;    // move back down to the max, and
-  //   g_angleRate1 = -g_angleRate1; // reverse direction of change.
-  //   }
-  // else if(g_angleNow1 < g_angleMin1) {  // below the min?
-  //   g_angleNow1 = g_angleMin1;    // move back up to the min, and
-  //   g_angleRate1 = -g_angleRate1;
-  //   }
-  // Continuous movement:
-  // g_posNow0 += g_posRate0 * elapsedMS / 1000.0;
-  // g_posNow1 += g_posRate1 * elapsedMS / 1000.0;
-  // // apply position limits
-  // if(g_posNow0 > g_posMax0) {   // above the max?
-  //   g_posNow0 = g_posMax0;      // move back down to the max, and
-  //   g_posRate0 = -g_posRate0;   // reverse direction of change
-  //   }
-  // else if(g_posNow0 < g_posMin0) {  // or below the min? 
-  //   g_posNow0 = g_posMin0;      // move back up to the min, and
-  //   g_posRate0 = -g_posRate0;   // reverse direction of change.
-  //   }
-  // if(g_posNow1 > g_posMax1) {   // above the max?
-  //   g_posNow1 = g_posMax1;      // move back down to the max, and
-  //   g_posRate1 = -g_posRate1;   // reverse direction of change
-  //   }
-  // else if(g_posNow1 < g_posMin1) {  // or below the min? 
-  //   g_posNow1 = g_posMin1;      // move back up to the min, and
-  //   g_posRate1 = -g_posRate1;   // reverse direction of change.
-  //   }
+//   // Find new time-dependent parameters using the current or elapsed time:
+//   // Continuous rotation:
+//   // g_angleNow0 = g_angleNow0 + (g_angleRate0 * elapsedMS) / 1000.0;
+//   g_angleNow1 = g_angleNow1 + (g_angleRate1 * elapsedMS) / 4000.0;
+//   g_angleNow2 = g_angleNow2 + (g_angleRate2 * elapsedMS) / 3000.0;
+//   // g_angleNow0 %= 360.0;   // keep angle >=0.0 and <360.0 degrees  
+//   // g_angleNow1 %= 360.0;   
+//   // g_angleNow2 %= 360.0;
+//   // if(g_angleNow1 > g_angleMax1) { // above the max?
+//   //   g_angleNow1 = g_angleMax1;    // move back down to the max, and
+//   //   g_angleRate1 = -g_angleRate1; // reverse direction of change.
+//   //   }
+//   // else if(g_angleNow1 < g_angleMin1) {  // below the min?
+//   //   g_angleNow1 = g_angleMin1;    // move back up to the min, and
+//   //   g_angleRate1 = -g_angleRate1;
+//   //   }
+//   // Continuous movement:
+//   // g_posNow0 += g_posRate0 * elapsedMS / 1000.0;
+//   // g_posNow1 += g_posRate1 * elapsedMS / 1000.0;
+//   // // apply position limits
+//   // if(g_posNow0 > g_posMax0) {   // above the max?
+//   //   g_posNow0 = g_posMax0;      // move back down to the max, and
+//   //   g_posRate0 = -g_posRate0;   // reverse direction of change
+//   //   }
+//   // else if(g_posNow0 < g_posMin0) {  // or below the min? 
+//   //   g_posNow0 = g_posMin0;      // move back up to the min, and
+//   //   g_posRate0 = -g_posRate0;   // reverse direction of change.
+//   //   }
+//   // if(g_posNow1 > g_posMax1) {   // above the max?
+//   //   g_posNow1 = g_posMax1;      // move back down to the max, and
+//   //   g_posRate1 = -g_posRate1;   // reverse direction of change
+//   //   }
+//   // else if(g_posNow1 < g_posMin1) {  // or below the min? 
+//   //   g_posNow1 = g_posMin1;      // move back up to the min, and
+//   //   g_posRate1 = -g_posRate1;   // reverse direction of change.
+//   //   }
 
-}
+// }
 
 
-function animate(angle) {
-//==============================================================================
-  // Calculate the elapsed time
-  var nowMS = Date.now();             // current time (in milliseconds)
-  var elapsedMS = nowMS - g_lastMS;   // 
-  g_lastMS = nowMS;                   // update for next webGL drawing.
+// function animate(angle) {
+// //==============================================================================
+//   // Calculate the elapsed time
+//   var nowMS = Date.now();             // current time (in milliseconds)
+//   var elapsedMS = nowMS - g_last;   // 
+//   g_last = nowMS;                   // update for next webGL drawing.
   
-  if(elapsedMS > 1000.0) {            
-    // Browsers won't re-draw 'canvas' element that isn't visible on-screen 
-    // (user chose a different browser tab, etc.); when users make the browser
-    // window visible again our resulting 'elapsedMS' value has gotten HUGE.
-    // Instead of allowing a HUGE change in all our time-dependent parameters,
-    // let's pretend that only a nominal 1/30th second passed:
-    elapsedMS = 1000.0/30.0;
-    }
+//   if(elapsedMS > 1000.0) {            
+//     // Browsers won't re-draw 'canvas' element that isn't visible on-screen 
+//     // (user chose a different browser tab, etc.); when users make the browser
+//     // window visible again our resulting 'elapsedMS' value has gotten HUGE.
+//     // Instead of allowing a HUGE change in all our time-dependent parameters,
+//     // let's pretend that only a nominal 1/30th second passed:
+//     elapsedMS = 1000.0/30.0;
+//     }
 
-  // Update the current rotation angle (adjusted by the elapsed time)
-  //  limit the angle to move smoothly between +20 and -85 degrees:
-//  if(angle >  120.0 && ANGLE_STEP > 0) ANGLE_STEP = -ANGLE_STEP;
-//  if(angle < -120.0 && ANGLE_STEP < 0) ANGLE_STEP = -ANGLE_STEP;
+//   // Update the current rotation angle (adjusted by the elapsed time)
+//   //  limit the angle to move smoothly between +20 and -85 degrees:
+// //  if(angle >  120.0 && ANGLE_STEP > 0) ANGLE_STEP = -ANGLE_STEP;
+// //  if(angle < -120.0 && ANGLE_STEP < 0) ANGLE_STEP = -ANGLE_STEP;
   
-  var newAngle = angle + (ANGLE_STEP * elapsed) / 1000.0;
-  return newAngle %= 360*3;   // keep angle finite; use 3*360 so that we can
-                              // use multiples of angle/3 on different axes.
-}
+//   var newAngle = angle + (ANGLE_STEP * elapsed) / 1000.0;
+//   return newAngle %= 360*3;   // keep angle finite; use 3*360 so that we can
+//                               // use multiples of angle/3 on different axes.
+// }
 
 
-function drawAll() {
+function drawVBOBox() {
 //=============================================================================
   // Clear on-screen HTML-5 <canvas> object:
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -340,16 +339,17 @@ function drawAll() {
   // ModelMatrix.setTranslate(0, 0, 0);
 
   // console.log('stack', __cuon_matrix_mod_stack);
-  pushMatrix(mMatrix);
+  // pushMatrix(mMatrix);
+
 
   var b4Draw = Date.now();
-  var b4Wait = b4Draw - g_lastMS;
+  var b4Wait = b4Draw - g_last;
   // console.log('orig',mMatrix);
 
 
 	if(g_show0 == 1) {	// IF user didn't press HTML button to 'hide' VBO0:
 	  worldBox.switchToMe();  // Set WebGL to render from this VBObox.
-		worldBox.adjust();		  // Send new values for uniforms to the GPU, and
+		worldBox.adjust(mMatrix);		  // Send new values for uniforms to the GPU, and
 		worldBox.draw();			  // draw our VBO's contents using our shaders.
   }
 
@@ -358,26 +358,27 @@ function drawAll() {
 
   if(g_show1 == 1) { // IF user didn't press HTML button to 'hide' VBO1:
     part1Box.switchToMe();  // Set WebGL to render from this VBObox.
-  	part1Box.adjust();		  // Send new values for uniforms to the GPU, and
+    part1Box.setVPMatrix(mMatrix);
+  	// part1Box.adjust();		  // Send new values for uniforms to the GPU, and
   	part1Box.draw();			  // draw our VBO's contents using our shaders.
 	}
 
-	if(g_show2 == 0) { // IF user didn't press HTML button to 'hide' VBO2:
-	  part2Box.switchToMe();  // Set WebGL to render from this VBObox.
-  	part2Box.adjust();		  // Send new values for uniforms to the GPU, and
-  	part2Box.draw();			  // draw our VBO's contents using our shaders.
-  }
+	// if(g_show2 == 0) { // IF user didn't press HTML button to 'hide' VBO2:
+	//   part2Box.switchToMe();  // Set WebGL to render from this VBObox.
+ //  	part2Box.adjust();		  // Send new values for uniforms to the GPU, and
+ //  	part2Box.draw();			  // draw our VBO's contents using our shaders.
+ //  }
 
-  if(g_show3 == 0) { // IF user didn't press HTML button to 'hide' VBO2:
-    part3Box.switchToMe();  // Set WebGL to render from this VBObox.
-    part3Box.adjust();      // Send new values for uniforms to the GPU, and
-    part3Box.draw();        // draw our VBO's contents using our shaders.
-  }
-  if(g_show4 == 0) { // IF user didn't press HTML button to 'hide' VBO2:
-    part4Box.switchToMe();  // Set WebGL to render from this VBObox.
-    part4Box.adjust();      // Send new values for uniforms to the GPU, and
-    part4Box.draw();        // draw our VBO's contents using our shaders.
-  }
+ //  if(g_show3 == 0) { // IF user didn't press HTML button to 'hide' VBO2:
+ //    part3Box.switchToMe();  // Set WebGL to render from this VBObox.
+ //    part3Box.adjust();      // Send new values for uniforms to the GPU, and
+ //    part3Box.draw();        // draw our VBO's contents using our shaders.
+ //  }
+ //  if(g_show4 == 0) { // IF user didn't press HTML button to 'hide' VBO2:
+ //    part4Box.switchToMe();  // Set WebGL to render from this VBObox.
+ //    part4Box.adjust();      // Send new values for uniforms to the GPU, and
+ //    part4Box.draw();        // draw our VBO's contents using our shaders.
+ //  }
 /* // ?How slow is our own code?  	
 var aftrDraw = Date.now();
 var drawWait = aftrDraw - b4Draw;

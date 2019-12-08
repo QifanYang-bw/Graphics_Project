@@ -246,7 +246,7 @@ VBObox0.prototype.isReady = function() {
   return isOK;
 }
 
-VBObox0.prototype.adjust = function() {
+VBObox0.prototype.adjust = function(vpMatrix) {
   //==============================================================================
   // Update the GPU to newer, current values we now store for 'uniform' vars on 
   // the GPU; and (if needed) update each attribute's stride and offset in VBO.
@@ -257,8 +257,7 @@ VBObox0.prototype.adjust = function() {
   						'.adjust() call you needed to call this.switchToMe()!!');
   }  
 
-  this.ModelMat = popMatrix();
-  pushMatrix(this.ModelMat);
+  this.ModelMat = new Matrix4(vpMatrix);
   
   this.ModelMat.translate( 0, -0, 0.0);  
   this.ModelMat.scale(0.1, 0.1, 0.1);       // shrink by 10X:

@@ -89,12 +89,14 @@
 //  ... for our camera:
 var eyePosWorld = new Float32Array(3);  // x,y,z in world coords
 
-  // ... for our first material:
-var matlSel= MATL_RED_PLASTIC;        // see keypress(): 'm' key changes matlSel
+// ... for our first material:
+var matlSel = MATL_RED_PLASTIC;        // see keypress(): 'm' key changes matlSel
 var matl0 = new Material(matlSel);  
 //  ... for our first light source:   (stays false if never initialized)
 
 var shaders = new shaderLib();
+
+var curVBOBox;
 
 function VBObox(sn, vertexShader, fragmentShader) {
   //=============================================================================
@@ -118,9 +120,11 @@ function VBObox(sn, vertexShader, fragmentShader) {
   this.VERT_SRC = shaders.getVertexShader() 
   this.FRAG_SRC = shaders.getFragmentShader() 
 
-  this.vboContents = [];
-
-  this.vboContents = makeSphere();
+  if (vboVerts.length == 0) {
+    console.log('Warning: vboVerts not provided!');
+    return;
+  }
+  this.vboContents = vboVerts;
 
   //----------------------Attribute sizes
   this.vboFcount_a_Pos = 4;    // # of floats in the VBO needed to store the
@@ -150,14 +154,11 @@ function VBObox(sn, vertexShader, fragmentShader) {
                  "VBObox" + this.sn + ".vboStride disagrees with attribute-size values!");
 
 
-
-
-
- //              //----------------------Attribute offsets
+  //----------------------Attribute offsets
   this.vboOffset_a_Pos = 0; 
   this.vboOffset_a_Color = this.vboFcount_a_Pos * this.FSIZE;    
 
-              //-----------------------GPU memory locations:                                
+  //-----------------------GPU memory locations:                                
   this.vboLoc;                  // GPU Location for Vertex Buffer Object (Position), 
                                 // returned by gl.createBuffer() function call
 
@@ -167,11 +168,8 @@ function VBObox(sn, vertexShader, fragmentShader) {
   this.shaderLoc;               // GPU Location for compiled Shader-program  
                                 // set by compile/link of VERT_SRC and FRAG_SRC.
   
-              //---------------------- Uniform locations &values in our shaders
-    //  ... for our transforms:
-  this.modelMatrix  = new Matrix4();  // Model matrix
-  this.mvpMatrix    = new Matrix4();  // Model-view-projection matrix
-  this.normalMatrix = new Matrix4();  // Transformation matrix for normals
+  //---------------------- Uniform locations &values in our shaders
+  this.vpMatrix;
 
   //    -- For 3D camera and transforms:
   this.uLoc_eyePosWorld  = false;
@@ -262,7 +260,6 @@ VBObox.prototype.init = function() {
   // Get GPU storage location for each uniform var used in our shader programs
   // This step is applied later in switchtoMe() method in which the program
   // this.shaderLoc is used.
-
 }
 
 VBObox.prototype.switchToMe = function () {
@@ -277,6 +274,9 @@ VBObox.prototype.switchToMe = function () {
   //  a) tell the GPU to use our VBObox's shader program (already in GPU memory),
   //  b) tell the GPU to use our VBObox's VBO  (already in GPU memory),
   //  c) tell the GPU to connect the shader program's attributes to that VBO.
+
+  // for global function calling
+  curVBOBox = this;
 
   // a) select our shader program:
   gl.program = this.shaderLoc;    // (to match cuon-utils.js -- initShaders())
@@ -296,72 +296,74 @@ VBObox.prototype.switchToMe = function () {
   // c) connect our newly-bound VBO to supply attribute variable values for each
   // vertex to our SIMD shader program, using 'vertexAttribPointer()' function.
   // this sets up data paths from VBO to our shader units:
-    //  Here's how to use the almost-identical OpenGL version of this function:
-    //    http://www.opengl.org/sdk/docs/man/xhtml/glVertexAttribPointer.xml )
-    gl.vertexAttribPointer(this.a_PosLoc, this.vboFcount_a_Pos,
-                         gl.FLOAT, false, 
-                         this.vboStride,  this.vboOffset_a_Pos);
+  //  Here's how to use the almost-identical OpenGL version of this function:
+  //    http://www.opengl.org/sdk/docs/man/xhtml/glVertexAttribPointer.xml )
 
-    gl.vertexAttribPointer(this.a_ColorLoc, this.vboFcount_a_Color,
-                         gl.FLOAT, false, 
-                         this.vboStride,  this.vboOffset_a_Color);
+  gl.vertexAttribPointer(this.a_PosLoc, this.vboFcount_a_Pos,
+                       gl.FLOAT, false, 
+                       this.vboStride,  this.vboOffset_a_Pos);
 
-    //-- Enable this assignment of the attribute to its' VBO source:
-    gl.enableVertexAttribArray(this.a_PosLoc);
-    gl.enableVertexAttribArray(this.a_ColorLoc);
+  gl.vertexAttribPointer(this.a_ColorLoc, this.vboFcount_a_Color,
+                       gl.FLOAT, false, 
+                       this.vboStride,  this.vboOffset_a_Color);
 
-    // Fill in the vertex shader source & fragment shader source
+  //-- Enable this assignment of the attribute to its' VBO source:
+  gl.enableVertexAttribArray(this.a_PosLoc);
+  gl.enableVertexAttribArray(this.a_ColorLoc);
 
-    // Create, save the storage locations of uniform variables: ... for the scene
-    // (Version 03: changed these to global vars (DANGER!) for use inside any func)
-    this.uLoc_eyePosWorld  = gl.getUniformLocation(gl.program, 'u_eyePosWorld');
-    this.uLoc_ModelMatrix  = gl.getUniformLocation(gl.program, 'u_ModelMatrix');
-    this.uLoc_MvpMatrix    = gl.getUniformLocation(gl.program, 'u_MvpMatrix');
-    this.uLoc_NormalMatrix = gl.getUniformLocation(gl.program, 'u_NormalMatrix');
-    if (!this.uLoc_eyePosWorld ||
-        !this.uLoc_ModelMatrix || !this.uLoc_MvpMatrix || !this.uLoc_NormalMatrix) {
-      console.log('Failed to get GPUs matrix storage locations');
+  // Fill in the vertex shader source & fragment shader source
+
+  // Create, save the storage locations of uniform variables: ... for the scene
+  // (Version 03: changed these to global vars (DANGER!) for use inside any func)
+  this.uLoc_eyePosWorld  = gl.getUniformLocation(gl.program, 'u_eyePosWorld');
+  this.uLoc_MvpMatrix   = gl.getUniformLocation(gl.program, 'u_MvpMatrix');
+  this.uLoc_ModelMatrix = gl.getUniformLocation(gl.program, 'u_ModelMatrix');
+  this.uLoc_NormalMatrix = gl.getUniformLocation(gl.program, 'u_NormalMatrix');
+
+  if (!this.uLoc_eyePosWorld ||
+      !this.uLoc_ModelMatrix || !this.uLoc_MvpMatrix || !this.uLoc_NormalMatrix) {
+    console.log('Failed to get GPUs matrix storage locations');
+    return;
+  }
+
+  this.uLoc_useColor = gl.getUniformLocation(gl.program, 'u_useColor');
+
+  //  ... for Phong light source:
+  // NEW!  Note we're getting the location of a GLSL struct array member:
+
+  for (var i = 0; i < lightSourceCount; i++) {
+    lightSource[i].u_pos  = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].pos'); 
+    lightSource[i].u_ambi = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].ambi');
+    lightSource[i].u_diff = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].diff');
+    lightSource[i].u_spec = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].spec');
+    if( !lightSource[i].u_pos || !lightSource[i].u_ambi || !lightSource[i].u_diff || !lightSource[i].u_spec ) {
+      console.log('Failed to get GPU\'s lightSource[' + i + '] storage locations');
       return;
     }
+  }
 
-    this.uLoc_useColor = gl.getUniformLocation(gl.program, 'u_useColor');
-
-    //  ... for Phong light source:
-    // NEW!  Note we're getting the location of a GLSL struct array member:
-
-    for (var i = 0; i < lightSourceCount; i++) {
-      lightSource[i].u_pos  = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].pos'); 
-      lightSource[i].u_ambi = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].ambi');
-      lightSource[i].u_diff = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].diff');
-      lightSource[i].u_spec = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].spec');
-      if( !lightSource[i].u_pos || !lightSource[i].u_ambi || !lightSource[i].u_diff || !lightSource[i].u_spec ) {
-        console.log('Failed to get GPU\'s lightSource[' + i + '] storage locations');
-        return;
-      }
-    }
-
-    // ... for Phong material/reflectance:
-    matl0.uLoc_Ke = gl.getUniformLocation(gl.program, 'u_MatlSet[0].emit');
-    matl0.uLoc_Ka = gl.getUniformLocation(gl.program, 'u_MatlSet[0].ambi');
-    matl0.uLoc_Kd = gl.getUniformLocation(gl.program, 'u_MatlSet[0].diff');
-    matl0.uLoc_Ks = gl.getUniformLocation(gl.program, 'u_MatlSet[0].spec');
-    matl0.uLoc_Kshiny = gl.getUniformLocation(gl.program, 'u_MatlSet[0].shiny');
-    if(!matl0.uLoc_Ke || !matl0.uLoc_Ka || !matl0.uLoc_Kd 
-                      || !matl0.uLoc_Ks || !matl0.uLoc_Kshiny
-       ) {
-      console.log('Failed to get GPUs Reflectance storage locations');
-      return;
-    }
+  // ... for Phong material/reflectance:
+  matl0.uLoc_Ke = gl.getUniformLocation(gl.program, 'u_MatlSet[0].emit');
+  matl0.uLoc_Ka = gl.getUniformLocation(gl.program, 'u_MatlSet[0].ambi');
+  matl0.uLoc_Kd = gl.getUniformLocation(gl.program, 'u_MatlSet[0].diff');
+  matl0.uLoc_Ks = gl.getUniformLocation(gl.program, 'u_MatlSet[0].spec');
+  matl0.uLoc_Kshiny = gl.getUniformLocation(gl.program, 'u_MatlSet[0].shiny');
+  if(!matl0.uLoc_Ke || !matl0.uLoc_Ka || !matl0.uLoc_Kd 
+                    || !matl0.uLoc_Ks || !matl0.uLoc_Kshiny
+     ) {
+    console.log('Failed to get GPUs Reflectance storage locations');
+    return;
+  }
 
 }
 
 VBObox.prototype.isReady = function() {
-//==============================================================================
-// Returns 'true' if our WebGL rendering context ('gl') is ready to render using
-// this objects VBO and shader program; else return false.
-// see: https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getParameter
+  //==============================================================================
+  // Returns 'true' if our WebGL rendering context ('gl') is ready to render using
+  // this objects VBO and shader program; else return false.
+  // see: https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getParameter
 
-var isOK = true;
+  var isOK = true;
 
   if(gl.getParameter(gl.CURRENT_PROGRAM) != this.shaderLoc)  {
     console.log(this.constructor.name + 
@@ -373,46 +375,21 @@ var isOK = true;
               '.isReady() false: vbo at this.norLoc not in use!');
     isOK = false;
   }
+  if(!this.vpMatrix) {
+    console.log(this.constructor.name + 
+              '.vpMatrix is not given!');
+    isOK = false;
+  };
   return isOK;
 }
 
-VBObox.prototype.adjust = function() {
-//==============================================================================
-// Update the GPU to newer, current values we now store for 'uniform' vars on 
-// the GPU; and (if needed) update each attribute's stride and offset in VBO.
 
-  // check: was WebGL context set to use our VBO & shader program?
-  if(this.isReady()==false) {
-        console.log('ERROR! before' + this.constructor.name + 
-              '.adjust() call you needed to call this.switchToMe()!!');
-  }
+VBObox.prototype.setVPMatrix = function (vpMatrix) {
 
-  
-  this.modelMatrix.setTranslate(0, 0, 0.25); // 'set' means DISCARD old matrix,
-              // (drawing axes centered in CVV), and then make new
-              // drawing axes moved to the lower-left corner of CVV.
-  this.modelMatrix.scale(0.25, 0.25, 0.25);
-
-  this.mvpMatrix = popMatrix();
-  pushMatrix(this.mvpMatrix);
-
-  this.mvpMatrix.multiply(this.modelMatrix);
-
-  // Calculate the matrix to transform the normal based on the model matrix
-  this.normalMatrix.setInverseOf(this.modelMatrix);
-  this.normalMatrix.transpose();
-
-    // Position the camera in world coordinates:
-    eyePosWorld.set([eyeX, eyeY, eyeZ]);
-    gl.uniform3fv(this.uLoc_eyePosWorld, eyePosWorld);// use it to set our uniform
-    // (Note: uniform4fv() expects 4-element float32Array as its 2nd argument)\
-
-  // Send the new matrix values to their locations in the GPU:
-  gl.uniformMatrix4fv(this.uLoc_ModelMatrix, false, this.modelMatrix.elements);
-  gl.uniformMatrix4fv(this.uLoc_MvpMatrix, false, this.mvpMatrix.elements);
-  gl.uniformMatrix4fv(this.uLoc_NormalMatrix, false, this.normalMatrix.elements);
+  this.vpMatrix = vpMatrix;
 
 }
+
 
 VBObox.prototype.draw = function() {
 //=============================================================================
@@ -424,6 +401,10 @@ VBObox.prototype.draw = function() {
               '.draw() call you needed to call this.switchToMe()!!');
   }
 
+  // Position the camera in world coordinates:
+  eyePosWorld.set([eyeX, eyeY, eyeZ]);
+  gl.uniform3fv(this.uLoc_eyePosWorld, eyePosWorld);// use it to set our uniform
+
   for (var i = 0; i < lightSourceCount; i++) {
     gl.uniform3fv(lightSource[i].u_pos,  lightSource[i].I_pos.elements.slice(0,3));
     //     ('slice(0,3) member func returns elements 0,1,2 (x,y,z) ) 
@@ -431,10 +412,6 @@ VBObox.prototype.draw = function() {
     gl.uniform3fv(lightSource[i].u_diff, lightSource[i].I_diff.elements);   // diffuse
     gl.uniform3fv(lightSource[i].u_spec, lightSource[i].I_spec.elements);   // Specular
   }
-
-  //  console.log('lightSource[0].u_pos',lightSource[0].u_pos,'\n' );
-  //  console.log('lightSource[0].I_diff.elements', lightSource[0].I_diff.elements, '\n');mmmmmm
-
 
   //---------------For the Material object(s):
   gl.uniform3fv(matl0.uLoc_Ke, matl0.K_emit.slice(0,3));        // Ke emissive
@@ -444,14 +421,29 @@ VBObox.prototype.draw = function() {
   gl.uniform1i(matl0.uLoc_Kshiny, parseInt(matl0.K_shiny, 10));     // Kshiny 
 
   this.useColor = 1;
-  gl.uniform1i(this.uLoc_useColor ,this.useColor);
+  gl.uniform1i(this.uLoc_useColor, this.useColor);
 
   gl.enable(gl.CULL_FACE);
   gl.cullFace(gl.BACK);
+
+  drawAll();
+  
+  // var tmatrix = new Matrix4()
+  // tmatrix.setTranslate(0, 0, 0.25); // 'set' means DISCARD old matrix,
+  //             // (drawing axes centered in CVV), and then make new
+  //             // drawing axes moved to the lower-left corner of CVV.
+  // tmatrix.scale(0.25, 0.25, 0.25);
+
+  // updateModelMatrix(tmatrix);
+
+  // gl.drawArrays(gl.TRIANGLE_STRIP,        // use this drawing primitive, and
+  //               0, // start at this vertex number, and 
+  //               240); // draw this many vertices.
+  
       // Draw just the sphere's vertices
-  gl.drawArrays(gl.TRIANGLE_STRIP,        // use this drawing primitive, and
-                0, // start at this vertex number, and 
-                this.vboVerts); // draw this many vertices.
+  // gl.drawArrays(gl.TRIANGLE_STRIP,        // use this drawing primitive, and
+  //               0, // start at this vertex number, and 
+  //               this.vboVerts); // draw this many vertices.
 
   // Usage: void gl.drawElements(mode, count, type, offset);
   // gl.drawElements(gl.TRIANGLES, this.elementLen, gl.UNSIGNED_SHORT, 0);
@@ -504,3 +496,23 @@ VBObox.prototype.empty = function() {
 // //
 // //
 // }
+
+function updateModelMatrix(modelMatrix) {
+
+  var mvpMatrix, normalMatrix;
+
+  mvpMatrix = new Matrix4(curVBOBox.vpMatrix);
+  mvpMatrix.multiply(modelMatrix);
+
+  // Calculate the matrix to transform the normal based on the model matrix
+
+  normalMatrix = new Matrix4();
+  normalMatrix.setInverseOf(modelMatrix);
+  normalMatrix.transpose();
+
+  // Send the new matrix values to their locations in the GPU
+  gl.uniformMatrix4fv(curVBOBox.uLoc_ModelMatrix, false, modelMatrix.elements);
+  gl.uniformMatrix4fv(curVBOBox.uLoc_MvpMatrix, false, mvpMatrix.elements);
+  gl.uniformMatrix4fv(curVBOBox.uLoc_NormalMatrix, false, normalMatrix.elements);
+
+}
