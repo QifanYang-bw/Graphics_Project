@@ -17,34 +17,33 @@ function drawGroundGrid(){
   clearMatrix(originalMatrixDepth);
 }
 
-// function drawTorus() {
+function drawSphere() {
 
-//   var originalMatrixDepth = getMatrixDepth();
+  var originalMatrixDepth = getMatrixDepth();
 
-//   var ModelMatrix = new Matrix4();
+  var ModelMatrix = new Matrix4();
 
-//   // Box for Body
+  // Box for Body
 
-//   ModelMatrix = popMatrix();
-//   pushMatrix(ModelMatrix);
+  ModelMatrix = popMatrix();
+  pushMatrix(ModelMatrix);
 
-//   ModelMatrix.scale(0.4, 0.4, 0.4);
-//   ModelMatrix.rotate(90.0, 1.0, 0.0, 0.0);
+  // ModelMatrix.scale(0.4, 0.4, 0.4);
+  // ModelMatrix.rotate(90.0, 1.0, 0.0, 0.0);
 
-//   updateModelMatrix(ModelMatrix);
+  updateModelMatrix(ModelMatrix);
 
-//   gl.drawArrays(gl.TRIANGLE_STRIP, 
-//                 vertexPool['Torus'][0],
-//                 vertexPool['Torus'][1]);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 
+                vertexPool['Sphere'][0],
+                vertexPool['Sphere'][1]);
 
-//   clearMatrix(originalMatrixDepth);
+  clearMatrix(originalMatrixDepth);
 
-// }
+}
 
 
 
-function drawDrone()
-{
+function drawDrone() {
   var originalMatrixDepth = getMatrixDepth();
 
   ModelMatrix = popMatrix();

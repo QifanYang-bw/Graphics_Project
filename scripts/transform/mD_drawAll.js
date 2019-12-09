@@ -7,28 +7,6 @@ function drawAll() {
 
   clearMatrix(0);
 
-
-  // {
-  //   // ==================== Draw Right Viewport (Perspective) ====================
-
-  //   gl.viewport(g_canvas.width/2,0,g_canvas.width/2, g_canvas.height);
-  //   var ModelMatrix = new Matrix4();
-    
-  //   ModelMatrix.ortho(-g_canvas.width/500, g_canvas.width/500, -g_canvas.height/250, g_canvas.height/250, 
-  //                          1.0,   // camera z-near distance (always positive; frustum begins at z = -znear)
-  //                       1000.0);  // camera z-far distance (always positive; frustum ends at z = -zfar)
-    
-  //   ModelMatrix.lookAt(eyeX + currentAngle * tempEyeX*0.01,  eyeY,  eyeZ,     // center of projection
-  //                     lookAtX + currentAngle * tX * 0.01, lookAtY, lookAtZ,  // look-at point 
-  //                     0.0,  1,  0);
-
-  //   pushMatrix(ModelMatrix);
-
-  //   drawObjects();
-
-  //   clearMatrix(0);
-
-  // };
 }
 
 
@@ -40,6 +18,7 @@ function drawObjects() {
   // drawGroundGrid();
   // drawAxis();
 
+  // --------------- Drone ---------------
   ModelMatrix.translate(0, 0, 1.0);
   ModelMatrix.scale(.15, .15, .15);
 
@@ -48,13 +27,28 @@ function drawObjects() {
 
   pushMatrix(ModelMatrix);
 
-  gl.enable(gl.CULL_FACE);s
+  gl.enable(gl.CULL_FACE);
   gl.cullFace(gl.BACK);
 
   drawDrone();
 
+  ModelMatrix = popMatrix();
+
+
+  // --------------- Sphere ---------------
+  ModelMatrix = popMatrix();
+  pushMatrix(ModelMatrix);
+
+  ModelMatrix.translate(-2.0, 0, 1.2);
+  ModelMatrix.scale(.3, .3, .3);
+
+  pushMatrix(ModelMatrix);
+
+  drawSphere();
 
   ModelMatrix = popMatrix();
+
+
 
   ModelMatrix = popMatrix();
   pushMatrix(ModelMatrix);
@@ -86,7 +80,5 @@ function drawObjects() {
   if (g_posAniActivated['cupMove1']) {
     drawWineGlass();
   }
-
-  drawWineGlass();
 
 }

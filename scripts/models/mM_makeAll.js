@@ -14,8 +14,9 @@ function makeAll() {
   makeWineGlass();
   // makeTorus();
   
-  makeAxis();
+  // makeAxis();
   // makeGroundGrid();
+  makeSphere();
 
   makeRing();
   makeWing();
