@@ -5,7 +5,9 @@
     <title>CS351 Project C</title>
     <style>
       body {
-        background: #DACED0;
+        background: #191919;
+
+        color: #f3f3f3;
       }
       #webgl {
         text-align: center;
@@ -43,6 +45,15 @@
 
         /*margin: 20px 20px; */
       }
+
+      /* fo dat.gui */
+      .save-row{
+        background-color: #191919!important;
+      }
+
+      .button{
+        background-color: #787878!important;
+      }
 /*      .button {
         color: #614E51;
         font-size : 15px;
@@ -63,6 +74,10 @@
   <body onload="main()">
 
     
+      <canvas id="webgl" width="600" height="600">
+      Please use a browser that supports "canvas"
+      </canvas>
+
     <div id="mainLocal">
 
       <div class="textTitle spacebetween">
@@ -72,35 +87,21 @@
         </div>
       </div>
 
-
-      <canvas id="webgl" width="600" height="600">
-      Please use a browser that supports "canvas"
-      </canvas>
-
-      <div >
-        <h3>Control Panel<br /></h3>
-
-        <div>
-          <button type="button" onclick="VBO0toggle()">VBO-0 hide/show</button>
-          <button type="button" onclick="VBO1toggle()">VBO-1 hide/show</button>
-          <button type="button" onclick="VBO2toggle()">VBO-2 hide/show</button>
-          <button type="button" onclick="VBO3toggle()">VBO-3 hide/show</button>
-          <button type="button" onclick="VBO4toggle()">VBO-4 hide/show</button>
-        </div>
-      </div>
-
       <div >
         <h3> User Instructions <br /></h3>
-        <p id="sentence">
-          1. You can drag the mouse in canvas to see the drone in all directions. The axes will rotate accordingly. <br/>
-          2. You can use 'WASD' to control the camera's location. <br/>
-          3. You can use 'IJKL' to move the look point. <br/>
-          4. You can speed up the animation by clicking the "Speed Up" button. <br />
-          5. You can slow down the animation by clicking the "Slow Down" button. <br />
-          6. You can pause the the animation by clicking the "Run / Stop" button or press 'p' on keyboard. <br />
-          7. If you press "Space" on keyboard, there will be a wine glass 'breaking'                                                     into the canvas. Guess what reaction they will make. <br />
-          8. If you double click on canvas, they will make the same reaction. Try it! <br />
-        </p>
+        <div id="sentence">
+
+          - 'M': Change the material of the sphere. </br>
+          - 'ZX': Increase/Decrease the shinyness of the specific sphere material.</br></br>
+
+          - 'WASD': Perspective Translate.</br>
+          - 'IJKL': Perspective Rotation.</br>
+          - 'Space': Causes a wine glass to appear in the field, with corresponding animations.</br></br>
+
+          - 'P': Pause/Resume animation.</br>
+          - 'H': Show/Hide the control panel. </br>
+
+        </div>
       </div>
 
     </div>

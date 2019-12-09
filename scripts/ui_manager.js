@@ -148,39 +148,3 @@ function addGUI() {
 
 	f1.open();
 }
-
-
-// var SettingsManager = function() {
-
-// 	// this.message = 'dat.gui';
-// 	// this.speed = 0.8;
-// 	// this.displayOutline = false;
-// 	// this.explode = function() { ... };
-// 	// Define render logic ...
-
-// 	this.applyColorOnBody = toggleApplyColorOnBody();
-
-// 	// this.lightSource
-
-// };
-
-// SettingsManager.prototype.apply = function() {
-
-//   // lightSource[lightID].isLit = !lightSource[lightID].isLit;
-
-//   applyColorOnBody = this.applyColorOnBody;
-
-// }
-
-// function addGUI() {
-
-// 	gui = new dat.GUI();
-// 	settings = new SettingsManager();
-
-// 	// var f2 = gui.addFolder('general');
-// 	gui.add(settings, 'applyColorOnBody');
-
-// 	// f2.add(text, 'maxSize');
-// 	// f2.add(text, 'message');
-
-// }

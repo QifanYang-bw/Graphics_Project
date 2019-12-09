@@ -227,7 +227,7 @@ function main() {
   // will follow this format:  gl.WebGLfunctionName(args);
   //SIMPLE VERSION:  gl = getWebGLContext(g_canvas); 
   // Here's a BETTER version:
-  gl = g_canvas.getContext("webgl", { preserveDrawingBuffer: true});
+  gl = g_canvas.getContext("webgl", { preserveDrawingBuffer: true });
 	// This fancier-looking version disables HTML-5's default screen-clearing, so 
 	// that our drawMain() 
 	// function will over-write previous on-screen results until we call the 
@@ -583,16 +583,16 @@ function myKeyDown(kev) {
       break;
     }
     case "KeyX": {
-      matl0.K_shiny += 1.0;               // INCREASE shinyness, but with a
-      if(matl0.K_shiny > 128.0) matl0.K_shiny = 128.0;  // upper limit.
-      console.log('UPPERcase S: ++K_shiny ==', matl0.K_shiny,'\n'); 
+      materialSource[matlSel].K_shiny += 1.0;               // INCREASE shinyness
+      if(materialSource[matlSel].K_shiny > 128.0) materialSource[matlSel].K_shiny = 128.0;  //  c.
+      console.log('UPPERcase S: ++K_shiny ==', materialSource[matlSel].K_shiny,'\n'); 
       // draw();                           // re-draw on-screen image.
       break;
     }
     case "KeyZ": {
-      matl0.K_shiny += -1.0;                // DECREASE shinyness, but with a
-      if(matl0.K_shiny < 1.0) matl0.K_shiny = 1.0;    // lower limit.
-      console.log('lowercase s: --K_shiny ==', matl0.K_shiny, '\n');
+      materialSource[matlSel].K_shiny += -1.0;                // DECREASE shinyness
+      if(materialSource[matlSel].K_shiny < 1.0) materialSource[matlSel].K_shiny = 1.0;
+      console.log('lowercase s: --K_shiny ==', materialSource[matlSel].K_shiny, '\n');
       // draw();                         // re-draw on-screen image.
       break;
     }
