@@ -9,12 +9,12 @@ var vboVerts = new Float32Array();
 
 function makeAll() {
 
-  // makeDog();
-  // makeHuman();
-  // makeWineGlass();
-  // // makeTorus();
+  makeDog();
+  makeHuman();
+  makeWineGlass();
+  // makeTorus();
   
-  // makeAxis();
+  makeAxis();
   // makeGroundGrid();
 
   makeRing();

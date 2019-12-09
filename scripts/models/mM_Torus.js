@@ -1,3 +1,4 @@
+/*
 // Based on Instancing02.js, 2019.10.21.Instancing
 
 function makeTorus() {
@@ -159,3 +160,4 @@ var phiHalfStep = Math.PI/ringSides;	// half-phi angle between each ringSide
 
   appendObject('Torus', g_torPosAry, g_torColorAry);
 }
+*/

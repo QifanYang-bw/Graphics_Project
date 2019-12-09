@@ -228,6 +228,10 @@ function dragQuat(xdrag, ydrag) {
 };
 
 
+function jumpTrigger() {
+    jumpSignal = true;
+}
+
 //==================HTML Button Callbacks======================
 
 function angleSubmit() {
@@ -277,3 +281,4 @@ function runStop() {
     resumeFirstFrame = true;
   }
 }
+

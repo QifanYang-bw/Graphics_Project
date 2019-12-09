@@ -28,9 +28,7 @@ function makeWineGlass() {
   // 180 degree (Pi radian) lattitude angle between south pole and north pole.
 
   // Create a (global) array to hold this sphere's vertices:
-  var g_sphPosAry = new Float32Array(  ((slices*2*sliceVerts) -2) * g_floatsPerPos);
-
-  var g_sphColorAry = new Float32Array(  ((slices*2*sliceVerts) -2) * g_floatsPerColor);
+  var g_glsAry = new Float32Array(  ((slices*2*sliceVerts) -2) * g_floatsPerVertex);
 
                     // # of vertices * # of elements needed to store them. 
                     // Each end-cap slice requires (2*sliceVerts -1) vertices 
@@ -54,8 +52,8 @@ function makeWineGlass() {
 
   var LastTri; // Set special for the first edge slice
 
-  var gradient = [[0, .376, 0, .027, .95],
-                  [1, .49, .027, .32, .95],
+  var gradient = [[0, .376, 0, .027, 1.0],
+                  [1, .49, .027, .32, 1.0],
                   [4, .494, .462, .612, 1.0],
                   [11, .72, .84, .98, 1.0],
                   [17, .762, .754, .756, 1.0]];
@@ -80,21 +78,10 @@ function makeWineGlass() {
     }               // then compute sine,cosine of lattitude of new top edge.
     cosTop = Math.cos((-Math.PI/2) +(s+1)*sliceAngle + Math.PI/3); 
     sinTop = Math.sin((-Math.PI/2) +(s+1)*sliceAngle + Math.PI/12);
-    // (NOTE: Lattitude = 0 @equator; -90deg @south pole; +90deg at north pole)
-    // (       use cos(lat) to set slice radius, sin(lat) to set slice z coord)
-    // Go around entire slice; start at x axis, proceed in CCW direction 
-    // (as seen from origin inside the sphere), generating TRIANGLE_STRIP verts.
-    // The vertex-counter 'v' starts at 0 at the start of each slice, but:
-    // --the first slice (the South-pole end-cap) begins with v=1, because
-    //    its first vertex is on the TOP (northwards) side of the tri-strip
-    //    to ensure correct winding order (tri-strip's first triangle is CCW
-    //    when seen from the outside of the sphere).
-    // --the last slice (the North-pole end-cap) ends early (by one vertex)
-    //    because its last vertex is on the BOTTOM (southwards) side of slice.
-    //
+
     if(s==slices-1) isLastSlice=1;// (flag: skip last vertex of the last slice).
 
-    // Edit currentcolor based on colorTracker
+    // Edit currentColor based on colorTracker
     currentColor = [0, 0, 0, 0];
     for (x = 1; x <= 4; x++) {
       currentColor[x - 1] = gradient[colorTracker][x] + 
@@ -107,7 +94,7 @@ function makeWineGlass() {
       if (s == gradient[colorTracker + 1][0]) {colorTracker += 1;};
     };
 
-    for(v=isFirstSlice;    v< 2*sliceVerts-isLastSlice;   v++,j+=g_floatsPerPos)
+    for(v=isFirstSlice;    v< 2*sliceVerts-isLastSlice;   v++,j+=g_floatsPerVertex)
     {
 
       LastTri = s == 1 && v == 0;
@@ -117,41 +104,29 @@ function makeWineGlass() {
                     // (0 <= theta < 360deg, increases 'eastward' on sphere).
                     // x,y,z,w == cos(theta),sin(theta), 1.0, 1.0
                     // where      theta = 2*PI*(v/2)/capVerts = PI*v/capVerts
-        g_sphPosAry[j  ] = cosBot * Math.cos(Math.PI * v/sliceVerts);  // x
-        g_sphPosAry[j+1] = cosBot * Math.sin(Math.PI * v/sliceVerts);  // y
-        g_sphPosAry[j+2] = sinBot;                                     // z
-        g_sphPosAry[j+3] = 1.0;                                        // w.       
+        g_glsAry[j  ] = cosBot * Math.cos(Math.PI * v/sliceVerts);  // x
+        g_glsAry[j+1] = cosBot * Math.sin(Math.PI * v/sliceVerts);  // y
+        g_glsAry[j+2] = sinBot;                                     // z
+        g_glsAry[j+3] = 1.0;                                        // w.       
       }
       else {  // put vertices with odd-numbered v at the the slice's top edge
               // (why PI and not 2*PI? because 0 <= v < 2*sliceVerts
               // and thus we can simplify cos(2*PI* ((v-1)/2)*sliceVerts)
               // (why (v-1)? because we want longitude angle 0 for vertex 1).  
-        g_sphPosAry[j  ] = cosTop * Math.cos(Math.PI * (v-1)/sliceVerts);  // x
-        g_sphPosAry[j+1] = cosTop * Math.sin(Math.PI * (v-1)/sliceVerts);  // y
-        g_sphPosAry[j+2] = sinTop;   // z
-        g_sphPosAry[j+3] = 1.0;  
+        g_glsAry[j  ] = cosTop * Math.cos(Math.PI * (v-1)/sliceVerts);  // x
+        g_glsAry[j+1] = cosTop * Math.sin(Math.PI * (v-1)/sliceVerts);  // y
+        g_glsAry[j+2] = sinTop;   // z
+        g_glsAry[j+3] = 1.0;  
       }
-      // finally, set some interesting colors for vertices:
-      // if(isFirstSlice==1 || LastTri) {  
-      // }
-      // else if(isLastSlice==1) {
-      // }
-      // else if(v==0) {  // Troublesome vertex: this vertex gets shared between 3 
-      // // important triangles; the last triangle of the previous slice, the 
-      // // anti-diagonal 'step' triangle that connects previous slice and next 
-      // // slice, and the first triangle of that next slice.  Smooth (Gouraud) 
-      // // shading of this vertex prevents us from choosing separate colors for 
-      // // each slice.  For a better solution, use the 'Degenerate Stepped Spiral' 
-      // // (Method 3) described in the Lecture Notes.
-      // }
-      // else {  // for all non-top, not-bottom slices, set vertex colors randomly
-      // }
 
+
+      // console.log(currentColor);
       for (x = 0; x <= 3; x++) {
-        g_sphColorAry[j + x]=currentColor[x]; 
+        g_glsAry[j + x + 4] = currentColor[x]; 
       }
+      // console.log(g_glsAry);
     }
   }
 
-  appendObject('WineGlass', g_sphPosAry, g_sphColorAry);
+  appendObject('WineGlass', g_glsAry);
 }

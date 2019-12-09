@@ -181,6 +181,9 @@ function main() {
   canvasInit();
 	
   gl.clearColor(0.1, 0.1, 0.1, 1);	  // RGBA color for clearing <canvas>
+
+  // gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+  // gl.enable(gl.BLEND);
   gl.enable(gl.DEPTH_TEST);
   
   // ==============ANIMATION=============
@@ -440,7 +443,7 @@ function drawResize() {
   
   g_canvas.width = window.innerWidth - 32;
   g_canvas.height = window.innerHeight*0.8;
-  console.log(window.innerWidth, window.innerWidth - 12);
+  // console.log(window.innerWidth, window.innerWidth - 12);
 }
 
 
@@ -487,6 +490,27 @@ function myKeyDown(kev) {
   var phi0 = Math.asin(dz/focal);
  
   switch(kev.code) {
+
+    case "KeyP":
+      console.log("Pause/unPause!\n");                // print on console,
+      // document.getElementById('KeyDownResult');   // print on webpage
+      runStop();
+
+      break;
+
+    //------------------Space Jumping-----------------
+    case "Space":
+      console.log(' Space: Jumping!');
+      // document.getElementById('KeyDownResult');
+
+
+      jumpTrigger();
+
+      if(kev.target == document.body) {
+        kev.preventDefault();
+      }
+
+      break; 
 
     case "KeyD": { // d
             u = new Float32Array([0, 0, 1]);

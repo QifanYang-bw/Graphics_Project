@@ -417,7 +417,7 @@ function drawDog() {
   gl.drawArrays(gl.TRIANGLE_STRIP, vertexPool['dTail2'][0], vertexPool['dTail2'][1]);
 
   pushMatrix(ModelMatrix);
-  drawAxis();
+  // drawAxis();
 
   clearMatrix(originalMatrixDepth);
 

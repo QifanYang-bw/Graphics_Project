@@ -40,7 +40,7 @@ function drawObjects() {
   // drawGroundGrid();
   // drawAxis();
 
-  ModelMatrix.translate(0, 0.8, 0);
+  ModelMatrix.translate(0, 0, 1.0);
   ModelMatrix.scale(.15, .15, .15);
 
   // QuatMatrix.setFromQuat(qTot.x, qTot.y, qTot.z, qTot.w); // Quaternion-->Matrix
@@ -48,44 +48,45 @@ function drawObjects() {
 
   pushMatrix(ModelMatrix);
 
-  gl.enable(gl.CULL_FACE);
+  gl.enable(gl.CULL_FACE);s
   gl.cullFace(gl.BACK);
 
   drawDrone();
 
 
-  // ModelMatrix = popMatrix();
+  ModelMatrix = popMatrix();
 
-  // ModelMatrix = popMatrix();
-  // pushMatrix(ModelMatrix);
+  ModelMatrix = popMatrix();
+  pushMatrix(ModelMatrix);
 
-  // // Box for Body
+  ModelMatrix.translate(0, 0, .4);
+  ModelMatrix.scale(.3, .3, .3);
+  ModelMatrix.rotate(90, 1, 0, 0);
 
-  // ModelMatrix.translate(0, -.3, 0);
-  // ModelMatrix.scale(.3, .3, .3);
+  pushMatrix(ModelMatrix);
 
-  // pushMatrix(ModelMatrix);
+  // =================================================================
+  // Tip: Depth_Test gl.enable(gl.DEPTH_TEST) is not a good way here
+  // since it penetrates through other drawn objects.
+  // Instead, we temporarily disable gl.CULL_FACE to let gl draw both sides.
 
-  // // =================================================================
-  // // Tip: Depth_Test gl.enable(gl.DEPTH_TEST) is not a good way here
-  // // since it penetrates through other drawn objects.
-  // // Instead, we temporarily disable gl.CULL_FACE to let gl draw both sides.
-
-  // // Use gl.cullFace(gl.FRONT) would let it draw the other side only.
-  // // Use gl.cullFace(gl.FRONT_AND_BACK) would cause the whole shape to disappear
-  // // :)
+  // Use gl.cullFace(gl.FRONT) would let it draw the other side only.
+  // Use gl.cullFace(gl.FRONT_AND_BACK) would cause the whole shape to disappear
+  // :)
 
 
-  // gl.enable(gl.CULL_FACE);
-  // gl.cullFace(gl.FRONT);
-  // drawDog();   // Draw all parts
+  gl.enable(gl.CULL_FACE);
+  gl.cullFace(gl.FRONT);
+  drawDog();   // Draw all parts
 
-  // gl.disable(gl.CULL_FACE);
-  // drawHuman();
+  gl.disable(gl.CULL_FACE);
+  drawHuman();
 
-  // // gl.cullFace(gl.BACK);
-  // if (g_posAniActivated['cupMove1']) {
-  //   drawWineGlass();
-  // }
+  // gl.cullFace(gl.BACK);
+  if (g_posAniActivated['cupMove1']) {
+    drawWineGlass();
+  }
+
+  drawWineGlass();
 
 }
