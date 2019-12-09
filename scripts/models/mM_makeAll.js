@@ -35,11 +35,23 @@ const cubeSeq = [0, 1, 3, 2, 2, 6, 3, 7, 0, 4, 1, 5, 2, 6, 6, 5, 7, 4];
 
 function appendCube(name, posArr, colorArr){
 
-  var i;
+  var i, j;
   var vboOutput = [];
+
+  for (i = 0; i < colorArr.length; i++) {
+    console.log('Before:', colorArr[i]);
+    for (j = 0; j < 3; j++) {
+      colorArr[i][j] = colorArr[i][j] * colorArr[i][3] + (1 - colorArr[i][3]);
+    }
+    colorArr[i][3] = 1.0;
+    console.log('After:', colorArr[i]);
+  }
 
   for (i = 0; i < cubeSeq.length; i++) {
     vboOutput = vboOutput.concat(posArr[cubeSeq[i]]);
+
+    // temporary solution to transparent colors
+
     vboOutput = vboOutput.concat(colorArr[cubeSeq[i]]);
   };
 

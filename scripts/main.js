@@ -118,9 +118,9 @@ var vertexPool = {};
 var curBufferLength;
 // ------------------------------------------------
 var currentAngle = 0.0;
-var eyeX = 0.001, eyeY = 5.001, eyeZ = .501; 
+var eyeX = 0.001, eyeY = 5.001, eyeZ = 1.001; 
 // var focalEyeX = 0, focalEyeY = 0, focalEyeZ = .5;  
-var lookAtX = 0.0, lookAtY = 0.0, lookAtZ = 0.25;
+var lookAtX = 0.0, lookAtY = 0.0, lookAtZ = 1.00;
 var tX = 0, tY = 0, tZ = 0;
 var STEP1 = 0.15;
 var STEP2 = 0.01;
@@ -138,17 +138,17 @@ function canvasInit() {
 
   worldBox = new VBObox0();     // Holds VBO & shaders for 3D 'world' ground-plane grid, etc;
   part1Box = new VBObox(1, VertexShaderEnum.Phong, FragmentShaderEnum.Phong);
-  // part2Box = new VBObox(2, VertexShaderEnum.Phong, FragmentShaderEnum.BlinnPhong);
-  // part3Box = new VBObox(3, VertexShaderEnum.Gouraud, FragmentShaderEnum.Phong);
-  // part4Box = new VBObox(4, VertexShaderEnum.Gouraud, FragmentShaderEnum.BlinnPhong);
+  part2Box = new VBObox(2, VertexShaderEnum.Phong, FragmentShaderEnum.BlinnPhong);
+  part3Box = new VBObox(3, VertexShaderEnum.Gouraud, FragmentShaderEnum.Phong);
+  part4Box = new VBObox(4, VertexShaderEnum.Gouraud, FragmentShaderEnum.BlinnPhong);
 
   // Initialize each of our 'vboBox' objects: 
   worldBox.init(gl);    // VBO + shaders + uniforms + attribs for our 3D world,
                         // including ground-plane,                       
   part1Box.init(gl);    //  "   "   "  for 1st kind of shading & lighting
-  // part2Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
-  // part3Box.init(gl);    //  "   "   "  for 1st kind of shading & lighting
-  // part4Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
+  part2Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
+  part3Box.init(gl);    //  "   "   "  for 1st kind of shading & lighting
+  part4Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
 }
 
 function main() {
@@ -359,29 +359,28 @@ function drawVBOBox() {
   // console.log('before');
   // console.log('length', __cuon_matrix_mod_stack);
 
-  if(g_show1 == 1) { // IF user didn't press HTML button to 'hide' VBO1:
-    part1Box.switchToMe();  // Set WebGL to render from this VBObox.
+  if(g_show1 == 1) {
+    part1Box.switchToMe();
     part1Box.setVPMatrix(mMatrix);
-  	// part1Box.adjust();		  // Send new values for uniforms to the GPU, and
-  	part1Box.draw();			  // draw our VBO's contents using our shaders.
+  	part1Box.draw();
 	}
 
-	// if(g_show2 == 0) { // IF user didn't press HTML button to 'hide' VBO2:
-	//   part2Box.switchToMe();  // Set WebGL to render from this VBObox.
- //  	part2Box.adjust();		  // Send new values for uniforms to the GPU, and
- //  	part2Box.draw();			  // draw our VBO's contents using our shaders.
- //  }
+	if(g_show2 == 0) {
+    part2Box.switchToMe();
+    part2Box.setVPMatrix(mMatrix);
+    part2Box.draw();
+  }
 
- //  if(g_show3 == 0) { // IF user didn't press HTML button to 'hide' VBO2:
- //    part3Box.switchToMe();  // Set WebGL to render from this VBObox.
- //    part3Box.adjust();      // Send new values for uniforms to the GPU, and
- //    part3Box.draw();        // draw our VBO's contents using our shaders.
- //  }
- //  if(g_show4 == 0) { // IF user didn't press HTML button to 'hide' VBO2:
- //    part4Box.switchToMe();  // Set WebGL to render from this VBObox.
- //    part4Box.adjust();      // Send new values for uniforms to the GPU, and
- //    part4Box.draw();        // draw our VBO's contents using our shaders.
- //  }
+  if(g_show3 == 0) {
+    part3Box.switchToMe();
+    part3Box.setVPMatrix(mMatrix);
+    part3Box.draw();
+  }
+  if(g_show4 == 0) {
+    part4Box.switchToMe();
+    part4Box.setVPMatrix(mMatrix);
+    part4Box.draw();
+  }
 /* // ?How slow is our own code?  	
 var aftrDraw = Date.now();
 var drawWait = aftrDraw - b4Draw;

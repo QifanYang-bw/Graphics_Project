@@ -29,7 +29,7 @@ function drawSphere() {
   pushMatrix(ModelMatrix);
 
   // ModelMatrix.scale(0.4, 0.4, 0.4);
-  // ModelMatrix.rotate(90.0, 1.0, 0.0, 0.0);
+  ModelMatrix.rotate(sphereShiftAngle, 0, 0, 1);
 
   updateModelMatrix(ModelMatrix);
 

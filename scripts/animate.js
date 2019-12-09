@@ -11,6 +11,9 @@ var QuatMatrix = new Matrix4();       // rotation matrix, made from latest qTot
 var propellerShiftAngle = 0;
 var propellerShiftSpeed = 1.3;
 
+var sphereShiftAngle = 0;
+var sphereShiftSpeed = 0.02;
+
 var g_angleAni = {
   humanMove1: [0, 75.0, 1.0, -45.0, 45.0],
   dogMove1: [0, 160.0, 1.0, -24.0, 24.0],
@@ -60,11 +63,9 @@ function animate() {
 
   propellerShiftAngle = (propellerShiftAngle + propellerShiftSpeed * elapsed) % 360;
 
-  // Angle, Angular Verlocity, Direction, Lower Bound, Upper Bound
+  sphereShiftAngle = (sphereShiftAngle + sphereShiftSpeed * elapsed) % 360;
 
-  // var g_angleAni = {humanMove1:[0, 75.0, 1.0, -45.0, 45.0],
-  //                 dogMove1:[0, 160.0, 1.0, -32.0, 32.0],
-  //                 dogTailMove1: [0, 300.0, 1.0, -40.0, 40.0]};
+  // Angle, Angular Verlocity, Direction, Lower Bound, Upper Bound
 
   var predictValue, valueAni;
 
