@@ -2,15 +2,25 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>CS351 Project C</title>
+    <title>CS351 Project C - Walking the Dog with Drone</title>
     <style>
       body {
         background: #191919;
+        margin: 0 0;
 
         color: #f3f3f3;
       }
       #webgl {
+        margin: 0 auto;
         text-align: center;
+      }
+
+      .mainLocal{
+        width: 80%;
+        margin: 0 auto;
+        margin-top: 50px;
+
+        color: #d4d4d3;
       }
 
       .framework{
@@ -26,6 +36,9 @@
       .textTitle{
         overflow: hidden;
         margin: 0 0 20px 0;
+      }
+      .textTitle, h3{
+        color: #f0f0f0;
       }
       .spacebetween{
         display: flex;
@@ -46,14 +59,17 @@
         /*margin: 20px 20px; */
       }
 
-      /* fo dat.gui */
+      /* for dat.gui */
       .save-row{
         background-color: #191919!important;
       }
 
       .button{
         background-color: #787878!important;
-      }
+      }/*
+      .dg.main{
+        margin-right: 0px!important;
+      }*/
 /*      .button {
         color: #614E51;
         font-size : 15px;
@@ -78,10 +94,10 @@
       Please use a browser that supports "canvas"
       </canvas>
 
-    <div id="mainLocal">
+    <div class="mainLocal">
 
       <div class="textTitle spacebetween">
-        <div><h2>CS351 Project C</h2></div>
+        <div><h2>CS351 Project C - Walking the Dog with Drone</h2></div>
         <div class="author">
           Qifan Yang: QYL123
         </div>
@@ -91,8 +107,14 @@
         <h3> User Instructions <br /></h3>
         <div id="sentence">
 
+          - Use the control panel on the right side to adjust most of the settings.
+
+        </div>
+        <h3> Keyboard Instructions <br /></h3>
+        <div id="sentence">
+
           - 'M': Change the material of the sphere. </br>
-          - 'ZX': Increase/Decrease the shinyness of the specific sphere material.</br></br>
+          - 'ZX': Increase/Decrease the shininess of the specific sphere material.</br></br>
 
           - 'WASD': Perspective Translate.</br>
           - 'IJKL': Perspective Rotation.</br>
@@ -104,33 +126,33 @@
         </div>
       </div>
 
+      <div id='DebugInfo' > 
+        <div class="textTitle">
+          <h3>Debug Info</h3>
+        </div>
+        <div class="spacebetween">
+          <div class='width33'>
+            <b> KeyPress Event </b>
+            <div id='KeyModResult' class='stdHeight'> </div> <!-- myKeyDown() modifies this object -->
+          </div>
+          <div class='width33'>
+            <b> Mouse Location </b>
+            <div id='MouseAtResult' class='stdHeight'></div>  <!-- myMouseMove() modifies this object -->
+          </div> 
+          <div class='width33'>
+            <b> Mouse Drag Direction </b>
+            <div id='MouseDragResult' class='stdHeight'></div> <!-- myMouseUp() modifies this object -->
+           </div> 
+        </div>
+        <div class="spacebetween">
+          <div class='width33'>
+            <b> Quaternion Rotation Value </b>
+            <div id='QuatValue' class='stdHeight'> </div> <!-- myKeyDown() modifies this object -->
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div id='DebugInfo' > 
-      <div class="textTitle">
-        <h3>Debug Info</h3>
-      </div>
-      <div class="spacebetween">
-        <div class='width33'>
-          <b> KeyPress Event </b>
-          <div id='KeyModResult' class='stdHeight'> </div> <!-- myKeyDown() modifies this object -->
-        </div>
-        <div class='width33'>
-          <b> Mouse Location </b>
-          <div id='MouseAtResult' class='stdHeight'></div>  <!-- myMouseMove() modifies this object -->
-        </div> 
-        <div class='width33'>
-          <b> Mouse Drag Direction </b>
-          <div id='MouseDragResult' class='stdHeight'></div> <!-- myMouseUp() modifies this object -->
-         </div> 
-      </div>
-      <div class="spacebetween">
-        <div class='width33'>
-          <b> Quaternion Rotation Value </b>
-          <div id='QuatValue' class='stdHeight'> </div> <!-- myKeyDown() modifies this object -->
-        </div>
-      </div>
-    </div>
 
     <script src="lib/webgl-utils.js"></script>
     <script src="lib/webgl-debug.js"></script>

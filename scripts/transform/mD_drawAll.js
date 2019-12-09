@@ -86,12 +86,12 @@ function drawObjects() {
   gl.enable(gl.CULL_FACE);
   gl.cullFace(gl.FRONT);
 
-  updateMaterial(18);
+  updateMaterial(MATL_JADE);
   drawDog();   // Draw all parts
 
 
   gl.disable(gl.CULL_FACE);
-  updateMaterial(20);
+  updateMaterial(MATL_PEARL);
   drawHuman();
 
   // gl.cullFace(gl.BACK);

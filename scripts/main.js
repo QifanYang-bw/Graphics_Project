@@ -355,8 +355,9 @@ function drawResize() {
  // var nuCanvas = document.getElementById('webgl');  // get current canvas
  // var nuGL = getWebGLContext(nuCanvas);             // and context:
   
-  g_canvas.width = window.innerWidth - 32;
-  g_canvas.height = window.innerHeight*0.8;
+  // g_canvas.width = window.innerWidth;
+  g_canvas.width = document.body.clientWidth;
+  g_canvas.height = window.innerHeight;
   // console.log(window.innerWidth, window.innerWidth - 12);
 }
 
@@ -583,14 +584,14 @@ function myKeyDown(kev) {
       break;
     }
     case "KeyX": {
-      materialSource[matlSel].K_shiny += 1.0;               // INCREASE shinyness
+      materialSource[matlSel].K_shiny += 1.0;               // INCREASE shininess
       if(materialSource[matlSel].K_shiny > 128.0) materialSource[matlSel].K_shiny = 128.0;  //  c.
       console.log('UPPERcase S: ++K_shiny ==', materialSource[matlSel].K_shiny,'\n'); 
       // draw();                           // re-draw on-screen image.
       break;
     }
     case "KeyZ": {
-      materialSource[matlSel].K_shiny += -1.0;                // DECREASE shinyness
+      materialSource[matlSel].K_shiny += -1.0;                // DECREASE shininess
       if(materialSource[matlSel].K_shiny < 1.0) materialSource[matlSel].K_shiny = 1.0;
       console.log('lowercase s: --K_shiny ==', materialSource[matlSel].K_shiny, '\n');
       // draw();                         // re-draw on-screen image.

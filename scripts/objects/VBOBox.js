@@ -3,7 +3,7 @@
 //
 //    Completed the Blinn-Phong lighting model: add emissive and specular:
 //    --Ke, Ka, Kd, Ks: K==Reflectance; emissive, ambient, diffuse, specular.
-//    --Kshiny: specular exponent for 'shinyness'.
+//    --Kshiny: specular exponent for 'shininess'.
 //    --Ia, Id, Is:   I==Illumination:          ambient, diffuse, specular.
 //    -- Implemented Blinn-Phong 'half-angle' specular term (from class)
 //
