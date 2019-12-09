@@ -81,7 +81,8 @@ var lightSource = [];
 var lightSourceCount;
 
 // For multiple VBOs & Shaders:-----------------
-var worldBox, part1Box, part2Box, part3Box, part4Box;
+var worldBox;
+var partBox = [];
 
 // global vars that contain the values we send thru those uniforms,
 //  ... for our camera:
@@ -121,10 +122,8 @@ var jumpSignal = false;
 
 // VBO Box Status
 var g_show0 = 1;								// 0==Show, 1==Hide VBO0 contents on-screen.
-var g_show1 = 1;
-var g_show2 = 1;
-var g_show3 = 1;
-var g_show4 = 1;
+var g_show = [];
+var currentShow;
 
 // Camera Constants
 var vertexPool = {};
@@ -149,19 +148,28 @@ function canvasInit() {
   setLights();
   setMaterials();
 
+  addGUI();
+
   worldBox = new VBObox0();     // Holds VBO & shaders for 3D 'world' ground-plane grid, etc;
-  part1Box = new VBObox(1, VertexShaderEnum.Phong, FragmentShaderEnum.Phong);
-  part2Box = new VBObox(2, VertexShaderEnum.Phong, FragmentShaderEnum.BlinnPhong);
-  part3Box = new VBObox(3, VertexShaderEnum.Gouraud, FragmentShaderEnum.Phong);
-  part4Box = new VBObox(4, VertexShaderEnum.Gouraud, FragmentShaderEnum.BlinnPhong);
+  partBox[1] = new VBObox(1, VertexShaderEnum.Phong, FragmentShaderEnum.Phong);
+  partBox[2] = new VBObox(2, VertexShaderEnum.Phong, FragmentShaderEnum.BlinnPhong);
+  partBox[3] = new VBObox(3, VertexShaderEnum.Gouraud, FragmentShaderEnum.Phong);
+  partBox[4] = new VBObox(4, VertexShaderEnum.Gouraud, FragmentShaderEnum.BlinnPhong);
 
   // Initialize each of our 'vboBox' objects: 
   worldBox.init(gl);    // VBO + shaders + uniforms + attribs for our 3D world,
                         // including ground-plane,                       
-  part1Box.init(gl);    //  "   "   "  for 1st kind of shading & lighting
-  part2Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
-  part3Box.init(gl);    //  "   "   "  for 1st kind of shading & lighting
-  part4Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
+  partBox[1].init(gl);    //  "   "   "  for 1st kind of shading & lighting
+  partBox[2].init(gl);    //  "   "   "  for 2nd kind of shading & lighting
+  partBox[3].init(gl);    //  "   "   "  for 1st kind of shading & lighting
+  partBox[4].init(gl);    //  "   "   "  for 2nd kind of shading & lighting
+
+  g_show[1] = 1;
+  g_show[2] = 0;
+  g_show[3] = 0;
+  g_show[4] = 0;
+
+  currentShow = 1;
 }
 
 function setLights() {
@@ -174,22 +182,22 @@ function setLights() {
 
   // Init World position, colors of light source in global vars;
   // lightSource[0].I_pos.elements.set([0,0,0]);
-  lightSource[0].I_ambi.elements.set([0.1, 0.1, 0.4]);
-  lightSource[0].I_diff.elements.set([0.15, 0.15, 0.6]);
-  lightSource[0].I_spec.elements.set([0.25, 0.25, 1.0]);
+  // lightSource[0].I_ambi.elements.set([0.1, 0.1, 0.4]);
+  // lightSource[0].I_diff.elements.set([0.15, 0.15, 0.6]);
+  // lightSource[0].I_spec.elements.set([0.25, 0.25, 1.0]);
 
-  lightSource[1].I_pos.elements.set( [6.0, 5.0, 5.0]);
-  lightSource[1].I_ambi.elements.set([0.4, 0.4, 0.4]);
-  lightSource[1].I_diff.elements.set([1.0, 1.0, 1.0]);
-  lightSource[1].I_spec.elements.set([1.0, 1.0, 1.0]);
+  // lightSource[1].I_pos.elements.set( [6.0, 5.0, 5.0]);
+  // lightSource[1].I_ambi.elements.set([0.4, 0.4, 0.4]);
+  // lightSource[1].I_diff.elements.set([1.0, 1.0, 1.0]);
+  // lightSource[1].I_spec.elements.set([1.0, 1.0, 1.0]);
 
-  lightSource[2].I_pos.elements.set([-3.0, -5.0, -2.0]);
-  lightSource[2].I_ambi.elements.set([0.2, 0.2, 0.15]);
-  lightSource[2].I_diff.elements.set([0.75, 0.75, 0.5]);
-  lightSource[2].I_spec.elements.set([0.8, 0.8, 0.6]);
+  // lightSource[2].I_pos.elements.set([-3.0, -5.0, -2.0]);
+  // lightSource[2].I_ambi.elements.set([0.2, 0.2, 0.15]);
+  // lightSource[2].I_diff.elements.set([0.75, 0.75, 0.5]);
+  // lightSource[2].I_spec.elements.set([0.8, 0.8, 0.6]);
 
 
-  lightSource[1].isLit = false;
+  // lightSource[1].isLit = false;
 
 }
 
@@ -301,6 +309,7 @@ function drawVBOBox() {
   var b4Wait = b4Draw - g_last;
   // console.log('orig',mMatrix);
 
+  settings.apply();
 
 	if(g_show0 == 1) {	// IF user didn't press HTML button to 'hide' VBO0:
 	  worldBox.switchToMe();  // Set WebGL to render from this VBObox.
@@ -311,33 +320,19 @@ function drawVBOBox() {
   // console.log('before');
   // console.log('length', __cuon_matrix_mod_stack);
 
-  if(g_show1 == 1) {
-    part1Box.switchToMe();
-    part1Box.setVPMatrix(mMatrix);
-  	part1Box.draw();
-	}
-
-	if(g_show2 == 0) {
-    part2Box.switchToMe();
-    part2Box.setVPMatrix(mMatrix);
-    part2Box.draw();
+  for (var i = 1; i <= 4; i++) {
+    if(g_show[i] == 1) {
+      partBox[i].switchToMe();
+      partBox[i].setVPMatrix(mMatrix);
+      partBox[i].draw();
+    }
   }
 
-  if(g_show3 == 0) {
-    part3Box.switchToMe();
-    part3Box.setVPMatrix(mMatrix);
-    part3Box.draw();
-  }
-  if(g_show4 == 0) {
-    part4Box.switchToMe();
-    part4Box.setVPMatrix(mMatrix);
-    part4Box.draw();
-  }
-/* // ?How slow is our own code?  	
-var aftrDraw = Date.now();
-var drawWait = aftrDraw - b4Draw;
-console.log("wait b4 draw: ", b4Wait, "drawWait: ", drawWait, "mSec");
-*/
+  /* // ?How slow is our own code?  	
+  var aftrDraw = Date.now();
+  var drawWait = aftrDraw - b4Draw;
+  console.log("wait b4 draw: ", b4Wait, "drawWait: ", drawWait, "mSec");
+  */
 
   clearMatrix(originalMatrixDepth);
 
@@ -351,37 +346,43 @@ function VBO0toggle() {
   console.log('g_show0: '+g_show0);
 }
 
-function VBO1toggle() {
-//=============================================================================
-// Called when user presses HTML-5 button 'Show/Hide VBO1'.
-  if(g_show1 != 1) g_show1 = 1;			// show,
-  else g_show1 = 0;									// hide.
-  console.log('g_show1: '+g_show1);
+// function VBO1toggle() {
+// //=============================================================================
+// // Called when user presses HTML-5 button 'Show/Hide VBO1'.
+//   if(g_show1 != 1) g_show1 = 1;			// show,
+//   else g_show1 = 0;									// hide.
+//   console.log('g_show1: '+g_show1);
+// }
+
+// function VBO2toggle() {
+// //=============================================================================
+// // Called when user presses HTML-5 button 'Show/Hide VBO2'.
+//   if(g_show2 != 1) g_show2 = 1;			// show,
+//   else g_show2 = 0;									// hide.
+//   console.log('g_show2: '+g_show2);
+// }
+
+// function VBO3toggle() {
+// //=============================================================================
+// // Called when user presses HTML-5 button 'Show/Hide VBO1'.
+//   if(g_show3 != 1) g_show3 = 1;     // show,
+//   else g_show3 = 0;                 // hide.
+//   console.log('g_show3: ' + g_show4);
+// }
+
+// function VBO4toggle() {
+// //=============================================================================
+// // Called when user presses HTML-5 button 'Show/Hide VBO2'.
+//   if(g_show4 != 1) g_show4 = 1;     // show,
+//   else g_show4 = 0;                 // hide.
+//   console.log('g_show4: ' + g_show4);
+// }
+
+function toggleLight(lightID) {
+
+  lightSource[lightID].isLit = !lightSource[lightID].isLit;
 }
 
-function VBO2toggle() {
-//=============================================================================
-// Called when user presses HTML-5 button 'Show/Hide VBO2'.
-  if(g_show2 != 1) g_show2 = 1;			// show,
-  else g_show2 = 0;									// hide.
-  console.log('g_show2: '+g_show2);
-}
-
-function VBO3toggle() {
-//=============================================================================
-// Called when user presses HTML-5 button 'Show/Hide VBO1'.
-  if(g_show3 != 1) g_show3 = 1;     // show,
-  else g_show3 = 0;                 // hide.
-  console.log('g_show3: ' + g_show4);
-}
-
-function VBO4toggle() {
-//=============================================================================
-// Called when user presses HTML-5 button 'Show/Hide VBO2'.
-  if(g_show4 != 1) g_show4 = 1;     // show,
-  else g_show4 = 0;                 // hide.
-  console.log('g_show4: ' + g_show4);
-}
 
 
 function drawResize() {
@@ -395,17 +396,6 @@ function drawResize() {
   g_canvas.width = window.innerWidth - 32;
   g_canvas.height = window.innerHeight*0.8;
   // console.log(window.innerWidth, window.innerWidth - 12);
-}
-
-function toggleLight(lightID) {
-
-  lightSource[lightID].isLit = !lightSource[lightID].isLit;
-}
-
-
-function toggleApplyColorOnBody(lightID) {
-
-  applyColorOnBody = !applyColorOnBody;
 }
 
 
