@@ -399,6 +399,8 @@ VBObox.prototype.draw = function() {
   eyePosWorld.set([eyeX, eyeY, eyeZ]);
   gl.uniform3fv(this.uLoc_eyePosWorld, eyePosWorld);// use it to set our uniform
 
+  lightSource[0].I_pos.elements.set([eyeX, eyeY, eyeZ]);
+
   for (var i = 0; i < lightSourceCount; i++) {
     gl.uniform1i(lightSource[i].u_isLit, lightSource[i].isLit);
     gl.uniform3fv(lightSource[i].u_pos,   lightSource[i].I_pos.elements.slice(0,3));

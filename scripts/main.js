@@ -166,22 +166,28 @@ function canvasInit() {
 
 function setLights() {
 
-  lightSourceCount = 2;
+  lightSourceCount = 3;
   
   for (var i = 0; i < lightSourceCount; i++) {
     lightSource[i] = new LightsT(); 
   } 
 
   // Init World position, colors of light source in global vars;
-  lightSource[0].I_pos.elements.set( [6.0, 5.0, 5.0]);
-  lightSource[0].I_ambi.elements.set([0.4, 0.4, 0.4]);
-  lightSource[0].I_diff.elements.set([1.0, 1.0, 1.0]);
-  lightSource[0].I_spec.elements.set([1.0, 1.0, 1.0]);
+  // lightSource[0].I_pos.elements.set([0,0,0]);
+  lightSource[0].I_ambi.elements.set([0.1, 0.1, 0.4]);
+  lightSource[0].I_diff.elements.set([0.15, 0.15, 0.6]);
+  lightSource[0].I_spec.elements.set([0.25, 0.25, 1.0]);
 
-  lightSource[1].I_pos.elements.set([-3.0, -5.0, -2.0]);
-  lightSource[1].I_ambi.elements.set([0.2, 0.2, 0.2]);
-  lightSource[1].I_diff.elements.set([0.6, 0.6, 0.6]);
-  lightSource[1].I_spec.elements.set([0.8, 0.8, 0.8]);
+  lightSource[1].I_pos.elements.set( [6.0, 5.0, 5.0]);
+  lightSource[1].I_ambi.elements.set([0.4, 0.4, 0.4]);
+  lightSource[1].I_diff.elements.set([1.0, 1.0, 1.0]);
+  lightSource[1].I_spec.elements.set([1.0, 1.0, 1.0]);
+
+  lightSource[2].I_pos.elements.set([-3.0, -5.0, -2.0]);
+  lightSource[2].I_ambi.elements.set([0.2, 0.2, 0.15]);
+  lightSource[2].I_diff.elements.set([0.75, 0.75, 0.5]);
+  lightSource[2].I_spec.elements.set([0.8, 0.8, 0.6]);
+
 
   lightSource[1].isLit = false;
 
@@ -195,7 +201,7 @@ function setMaterials() {
   for (var i = 0; i <= materialSourceCount; i++) {
     materialSource[i] = new Material(i); 
   } 
-  // console.log(materialSource);
+
 }
 
 function main() {
