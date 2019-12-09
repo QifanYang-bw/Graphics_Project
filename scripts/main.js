@@ -346,44 +346,6 @@ function VBO0toggle() {
   console.log('g_show0: '+g_show0);
 }
 
-// function VBO1toggle() {
-// //=============================================================================
-// // Called when user presses HTML-5 button 'Show/Hide VBO1'.
-//   if(g_show1 != 1) g_show1 = 1;			// show,
-//   else g_show1 = 0;									// hide.
-//   console.log('g_show1: '+g_show1);
-// }
-
-// function VBO2toggle() {
-// //=============================================================================
-// // Called when user presses HTML-5 button 'Show/Hide VBO2'.
-//   if(g_show2 != 1) g_show2 = 1;			// show,
-//   else g_show2 = 0;									// hide.
-//   console.log('g_show2: '+g_show2);
-// }
-
-// function VBO3toggle() {
-// //=============================================================================
-// // Called when user presses HTML-5 button 'Show/Hide VBO1'.
-//   if(g_show3 != 1) g_show3 = 1;     // show,
-//   else g_show3 = 0;                 // hide.
-//   console.log('g_show3: ' + g_show4);
-// }
-
-// function VBO4toggle() {
-// //=============================================================================
-// // Called when user presses HTML-5 button 'Show/Hide VBO2'.
-//   if(g_show4 != 1) g_show4 = 1;     // show,
-//   else g_show4 = 0;                 // hide.
-//   console.log('g_show4: ' + g_show4);
-// }
-
-function toggleLight(lightID) {
-
-  lightSource[lightID].isLit = !lightSource[lightID].isLit;
-}
-
-
 
 function drawResize() {
 //==============================================================================

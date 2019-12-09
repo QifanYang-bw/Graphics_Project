@@ -7,7 +7,8 @@ var defaultSettings = JSON.parse(`
       "0": {
         "vertexShader": 0,
         "fragmentShader": 0,
-        "displayColor": true
+        "displayColor": true,
+        "showGrid": true
       },
       "1": {
         "isLit": true,

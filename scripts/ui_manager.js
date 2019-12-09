@@ -26,6 +26,7 @@ var SettingsManager = function() {
 	this.fragmentShader = 0;
 
 	this.displayColor = true;
+	this.showGrid = true;
 
 	this.lightSource = [];
 
@@ -54,6 +55,8 @@ SettingsManager.prototype.apply = function() {
 
 	}
 
+	g_show0 = this.showGrid;
+
 	// Light Settings
 	for (var i = 0; i < 3; i++) {
 
@@ -74,7 +77,7 @@ SettingsManager.prototype.apply = function() {
 
 	}
 
-	console.log(lightSource);
+	// console.log(lightSource);
 }
 
 function RGBIntToFloat(intArray) {
@@ -111,7 +114,9 @@ function addGUI() {
 	f1.add(settings, 'vertexShader', { Phong: 0, Gouraud: 1 } );
 	f1.add(settings, 'fragmentShader', { Phong: 0, Blinn_Phong: 1 } );
 
-	f1.add(settings, 'displayColor');
+	var f2 = gui.addFolder('Display');
+	f2.add(settings, 'displayColor');
+	f2.add(settings, 'showGrid');
 
 	var fLamps = [];
 
