@@ -325,10 +325,11 @@ VBObox.prototype.switchToMe = function () {
   // NEW!  Note we're getting the location of a GLSL struct array member:
 
   for (var i = 0; i < lightSourceCount; i++) {
-    lightSource[i].u_pos  = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].pos'); 
-    lightSource[i].u_ambi = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].ambi');
-    lightSource[i].u_diff = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].diff');
-    lightSource[i].u_spec = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].spec');
+    lightSource[i].u_isLit = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].isLit'); 
+    lightSource[i].u_pos   = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].pos'); 
+    lightSource[i].u_ambi  = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].ambi');
+    lightSource[i].u_diff  = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].diff');
+    lightSource[i].u_spec  = gl.getUniformLocation(gl.program, 'u_LampSet[' + i + '].spec');
     if( !lightSource[i].u_pos || !lightSource[i].u_ambi || !lightSource[i].u_diff || !lightSource[i].u_spec ) {
       console.log('Failed to get GPU\'s lightSource[' + i + '] storage locations');
       return;
@@ -399,11 +400,12 @@ VBObox.prototype.draw = function() {
   gl.uniform3fv(this.uLoc_eyePosWorld, eyePosWorld);// use it to set our uniform
 
   for (var i = 0; i < lightSourceCount; i++) {
-    gl.uniform3fv(lightSource[i].u_pos,  lightSource[i].I_pos.elements.slice(0,3));
+    gl.uniform1i(lightSource[i].u_isLit, lightSource[i].isLit);
+    gl.uniform3fv(lightSource[i].u_pos,   lightSource[i].I_pos.elements.slice(0,3));
     //     ('slice(0,3) member func returns elements 0,1,2 (x,y,z) ) 
-    gl.uniform3fv(lightSource[i].u_ambi, lightSource[i].I_ambi.elements);   // ambient
-    gl.uniform3fv(lightSource[i].u_diff, lightSource[i].I_diff.elements);   // diffuse
-    gl.uniform3fv(lightSource[i].u_spec, lightSource[i].I_spec.elements);   // Specular
+    gl.uniform3fv(lightSource[i].u_ambi,  lightSource[i].I_ambi.elements);   // ambient
+    gl.uniform3fv(lightSource[i].u_diff,  lightSource[i].I_diff.elements);   // diffuse
+    gl.uniform3fv(lightSource[i].u_spec,  lightSource[i].I_spec.elements);   // Specular
   }
 
   gl.enable(gl.CULL_FACE);

@@ -165,6 +165,7 @@ function canvasInit() {
 }
 
 function setLights() {
+
   lightSourceCount = 2;
   
   for (var i = 0; i < lightSourceCount; i++) {
@@ -181,6 +182,9 @@ function setLights() {
   lightSource[1].I_ambi.elements.set([0.2, 0.2, 0.2]);
   lightSource[1].I_diff.elements.set([0.6, 0.6, 0.6]);
   lightSource[1].I_spec.elements.set([0.8, 0.8, 0.8]);
+
+  lightSource[1].isLit = false;
+
 }
 
 
@@ -387,6 +391,16 @@ function drawResize() {
   // console.log(window.innerWidth, window.innerWidth - 12);
 }
 
+function toggleLight(lightID) {
+
+  lightSource[lightID].isLit = !lightSource[lightID].isLit;
+}
+
+
+function toggleApplyColorOnBody(lightID) {
+
+  applyColorOnBody = !applyColorOnBody;
+}
 
 
 function myKeyDown(kev) {
