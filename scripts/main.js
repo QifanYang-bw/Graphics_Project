@@ -75,7 +75,7 @@ VBOboxes.  Move all the uniform-adjusting operations from that JS function into 
 // for WebGL usage:--------------------
 var gl;													// WebGL rendering context -- the 'webGL' object
 																// in JavaScript with all its member fcns & data
-var g_canvasID;									// HTML-5 'canvas' element ID#
+var g_canvas;									// HTML-5 'canvas' element ID#
 
 var lightSource = [];
 var lightSourceCount = 2;
@@ -132,8 +132,6 @@ function canvasInit() {
   
   makeAll();
 
-  console.log(vertexPool);
-  console.log(vboVerts);
   // Set up Light sources before all VBO Boxes
   setLights();
 
@@ -156,7 +154,7 @@ function canvasInit() {
 function main() {
 //=============================================================================
   // Retrieve the HTML-5 <canvas> element where webGL will draw our pictures:
-  g_canvasID = document.getElementById('webgl');	
+  g_canvas = document.getElementById('webgl');	
   // Create the the WebGL rendering context: one giant JavaScript object that
   // contains the WebGL state machine adjusted by large sets of WebGL functions,
   // built-in variables & parameters, and member data. Every WebGL function call
@@ -166,9 +164,9 @@ function main() {
   // contains the WebGL state machine, adjusted by big sets of WebGL functions,
   // built-in variables & parameters, and member data. Every WebGL func. call
   // will follow this format:  gl.WebGLfunctionName(args);
-  //SIMPLE VERSION:  gl = getWebGLContext(g_canvasID); 
+  //SIMPLE VERSION:  gl = getWebGLContext(g_canvas); 
   // Here's a BETTER version:
-  gl = g_canvasID.getContext("webgl", { preserveDrawingBuffer: true});
+  gl = g_canvas.getContext("webgl", { preserveDrawingBuffer: true});
 	// This fancier-looking version disables HTML-5's default screen-clearing, so 
 	// that our drawMain() 
 	// function will over-write previous on-screen results until we call the 
@@ -205,10 +203,12 @@ function main() {
   //------------------------------------
   var tick = function() {		    // locally (within main() only), define our 
                                 // self-calling animation function. 
-    requestAnimationFrame(tick, g_canvasID); // browser callback request; wait
-                                // til browser is ready to re-draw canvas, then
+    drawResize();
     animate();                  // Update all time-varying params, and
     drawVBOBox();                  // Draw all the VBObox contents
+    
+    requestAnimationFrame(tick, g_canvas); // browser callback request; wait
+                                // til browser is ready to re-draw canvas, then
   };
   //------------------------------------
   tick();                       // do it again!
@@ -323,12 +323,12 @@ function drawVBOBox() {
   var originalMatrixDepth = getMatrixDepth();
 
   // Perspective Cam
-  gl.viewport(0,0,g_canvasID.width, g_canvasID.height);
+  gl.viewport(0,0,g_canvas.width, g_canvas.height);
   var mMatrix = new Matrix4();
   
   // FOV = 30 deg
   mMatrix.perspective(30.0,   // FOVY: top-to-bottom vertical image angle, in degrees
-                      (g_canvasID.width)/g_canvasID.height,   // Image Aspect Ratio: camera lens width/height
+                      (g_canvas.width)/g_canvas.height,   // Image Aspect Ratio: camera lens width/height
                       1.0,   // camera z-near distance (always positive; frustum begins at z = -znear)
                       1000.0);  // camera z-far distance (always positive; frustum ends at z = -zfar)
   
@@ -430,29 +430,44 @@ function VBO4toggle() {
 }
 
 
+function drawResize() {
+//==============================================================================
+// Called when user re-sizes their browser window , because our HTML file
+// contains:  <body onload="main()" onresize="winResize()">
+
+ // var nuCanvas = document.getElementById('webgl');  // get current canvas
+ // var nuGL = getWebGLContext(nuCanvas);             // and context:
+  
+  g_canvas.width = window.innerWidth - 32;
+  g_canvas.height = window.innerHeight*0.8;
+  console.log(window.innerWidth, window.innerWidth - 12);
+}
+
+
+
 function myKeyDown(kev) {
-//===============================================================================
-// Called when user presses down ANY key on the keyboard;
-//
-// For a light, easy explanation of keyboard events in JavaScript,
-// see:    http://www.kirupa.com/html5/keyboard_events_in_javascript.htm
-// For a thorough explanation of a mess of JavaScript keyboard event handling,
-// see:    http://javascript.info/tutorial/keyboard-events
-//
-// NOTE: Mozilla deprecated the 'keypress' event entirely, and in the
-//        'keydown' event deprecated several read-only properties I used
-//        previously, including kev.charCode, kev.keyCode. 
-//        Revised 2/2019:  use kev.key and kev.code instead.
-//
-// Report EVERYTHING in console:
+  //===============================================================================
+  // Called when user presses down ANY key on the keyboard;
+  //
+  // For a light, easy explanation of keyboard events in JavaScript,
+  // see:    http://www.kirupa.com/html5/keyboard_events_in_javascript.htm
+  // For a thorough explanation of a mess of JavaScript keyboard event handling,
+  // see:    http://javascript.info/tutorial/keyboard-events
+  //
+  // NOTE: Mozilla deprecated the 'keypress' event entirely, and in the
+  //        'keydown' event deprecated several read-only properties I used
+  //        previously, including kev.charCode, kev.keyCode. 
+  //        Revised 2/2019:  use kev.key and kev.code instead.
+  //
+  // Report EVERYTHING in console:
   console.log(  "--kev.code:",    kev.code,   "\t\t--kev.key:",     kev.key, 
               "\n--kev.ctrlKey:", kev.ctrlKey,  "\t--kev.shiftKey:",kev.shiftKey,
               "\n--kev.altKey:",  kev.altKey,   "\t--kev.metaKey:", kev.metaKey);
 
-// // and report EVERYTHING on webpage:
-//   document.getElementById('KeyDownResult'); // clear old results
-//   // key details:
-//   document.getElementById('KeyModResult' );
+  // // and report EVERYTHING on webpage:
+  //   document.getElementById('KeyDownResult'); // clear old results
+  //   // key details:
+  //   document.getElementById('KeyModResult' );
   document.getElementById('KeyModResult' ).innerHTML = 
         "   --kev.code:"+kev.code   +"      --kev.key:"+kev.key+
     "<br>--kev.ctrlKey:"+kev.ctrlKey+" --kev.shiftKey:"+kev.shiftKey+

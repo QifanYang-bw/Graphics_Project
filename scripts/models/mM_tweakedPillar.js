@@ -28,7 +28,7 @@ function maketweakedPillar() {
                     [1.0, -1.0, 0.0],
                     [1.0, 1.0, 0.0]];
 
-  var ringDivs = 24;
+  var ringDivs = 48;
   var quatRingDivs = Math.floor(ringDivs * 0.25);
 
   var basePosAryX = new Float32Array(ringDivs);

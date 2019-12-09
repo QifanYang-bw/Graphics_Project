@@ -3,10 +3,10 @@ function makeRing() {
   var verticesPerDiv = 10;
 
   var rOutside = 1.0;
-  var rInside = 0.9;
+  var rInside = 0.95;
   var ringHeight = 1;
 
-  var ringDivs = 24;                 // # of stepped-spiral rings(constant theta)
+  var ringDivs = 48;                 // # of stepped-spiral rings(constant theta)
                                       // along the entire length of the bent tube.
                                       // (>=3 req'd: more for smoother bending)
 

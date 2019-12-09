@@ -2,28 +2,135 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>JT_Multi-Shader</title>
+    <title>CS351 Project C</title>
+    <style>
+      body {
+        background: #DACED0;
+      }
+      #webgl {
+        text-align: center;
+      }
+
+      .framework{
+        border: 20px solid #947278;
+        background: #f0f0f0;
+
+        font-size: 16px;
+        padding: 20px;
+        max-width:900px;
+        width: 100%;
+        margin: 0px auto;
+      }
+      .title{
+        overflow: hidden;
+        margin: 0 0 20px 0;
+      }
+      .spacebetween{
+        display: flex;
+        justify-content: space-between;
+      }
+      .author{
+        text-align: right;
+      }
+      .width33{
+        width:33%;
+      }
+      .stdHeight{
+        height: 5em;
+      }
+      .canvas{
+        border: 5px solid #bdc3c7;
+
+        /*margin: 20px 20px; */
+      }
+      .button {
+        color: #614E51;
+        font-size : 15px;
+        text-decoration: none;
+        background: #e0e0e0;
+        padding: 10px;
+        border: 4px solid #614E51 ;
+        display: inline-block;
+        transition: all 0.4s ease 0s;
+      }
+
+      .button:active {
+        border: 4px solid #ccbcbe;
+      }
+    </style>
   </head>
 
   <body onload="main()">
-    <canvas id="webgl" width="600" height="600">
-    Please use a browser that supports "canvas"
-    </canvas>
-    <p>
-      <button type="button" onclick="VBO0toggle()">VBO-0 hide/show</button>
-      <button type="button" onclick="VBO1toggle()">VBO-1 hide/show</button>
-      <button type="button" onclick="VBO2toggle()">VBO-2 hide/show</button>
-      <button type="button" onclick="VBO3toggle()">VBO-3 hide/show</button>
-      <button type="button" onclick="VBO4toggle()">VBO-4 hide/show</button>
-    </p>
 
-    <div>
-      <b> Keyboard Controls </b>
-      <div id='KeyControlDescription'> WASD to move camera, IJKL to rotate camera.</div>
-      <div>This submission keeps its .git file for tracking and project management; Enter terminal/cmd and type 'git log' to see more. (Git is a good thing!)</div> <!-- myKeyDown() modifies this object -->
-      <b> KeyPress Event </b>
-      <div id='KeyModResult'> </div> <!-- myKeyDown() modifies this object -->
+    
+    <div id="mainLocal">
+
+      <div class="title spacebetween">
+        <div><h2>CS351 Project C</h2></div>
+        <div class="author">
+          Qifan Yang: QYL123
+        </div>
+      </div>
+
+
+      <canvas id="webgl" width="600" height="600">
+      Please use a browser that supports "canvas"
+      </canvas>
+
+      <div >
+        <h3>Control Panel<br /></h3>
+
+        <div>
+          <button type="button" onclick="VBO0toggle()">VBO-0 hide/show</button>
+          <button type="button" onclick="VBO1toggle()">VBO-1 hide/show</button>
+          <button type="button" onclick="VBO2toggle()">VBO-2 hide/show</button>
+          <button type="button" onclick="VBO3toggle()">VBO-3 hide/show</button>
+          <button type="button" onclick="VBO4toggle()">VBO-4 hide/show</button>
+        </div>
+      </div>
+
+      <div >
+        <h3> User Instructions <br /></h3>
+        <p id="sentence">
+          1. You can drag the mouse in canvas to see the drone in all directions. The axes will rotate accordingly. <br/>
+          2. You can use 'WASD' to control the camera's location. <br/>
+          3. You can use 'IJKL' to move the look point. <br/>
+          4. You can speed up the animation by clicking the "Speed Up" button. <br />
+          5. You can slow down the animation by clicking the "Slow Down" button. <br />
+          6. You can pause the the animation by clicking the "Run / Stop" button or press 'p' on keyboard. <br />
+          7. If you press "Space" on keyboard, there will be a wine glass 'breaking'                                                     into the canvas. Guess what reaction they will make. <br />
+          8. If you double click on canvas, they will make the same reaction. Try it! <br />
+        </p>
+      </div>
+
     </div>
+
+    <div id='DebugInfo' > 
+      <div class="title">
+        <h3>Debug Info</h3>
+      </div>
+      <div class="spacebetween">
+        <div class='width33'>
+          <b> KeyPress Event </b>
+          <div id='KeyModResult' class='stdHeight'> </div> <!-- myKeyDown() modifies this object -->
+        </div>
+        <div class='width33'>
+          <b> Mouse Location </b>
+          <div id='MouseAtResult' class='stdHeight'></div>  <!-- myMouseMove() modifies this object -->
+        </div> 
+        <div class='width33'>
+          <b> Mouse Drag Direction </b>
+          <div id='MouseDragResult' class='stdHeight'></div> <!-- myMouseUp() modifies this object -->
+         </div> 
+      </div>
+      <div class="spacebetween">
+        <div class='width33'>
+          <b> Quaternion Rotation Value </b>
+          <div id='QuatValue' class='stdHeight'> </div> <!-- myKeyDown() modifies this object -->
+        </div>
+      </div>
+    </div>
+
     <script src="lib/webgl-utils.js"></script>
     <script src="lib/webgl-debug.js"></script>
     <script src="lib/cuon-utils.js"></script>

@@ -498,6 +498,9 @@ VBObox.prototype.empty = function() {
 // }
 
 function updateModelMatrix(modelMatrix) {
+  if (curVBOBox === undefined) {
+    console.log('curVBOBox doesn\'t exist!');
+  }
 
   var mvpMatrix, normalMatrix;
 
