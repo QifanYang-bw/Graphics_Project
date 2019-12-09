@@ -1,6 +1,13 @@
+var defaultMaterialID = MATL_RED_PLASTIC;
+
+var applyColorOnBody = true;
+
 function drawAll() {
 
   var ModelMatrix = new Matrix4();
+
+  updateUseColor(1);
+  updateMaterial(vertexPool['Sphere'][2]);
 
   pushMatrix(ModelMatrix);
   drawObjects();
@@ -44,10 +51,18 @@ function drawObjects() {
 
   pushMatrix(ModelMatrix);
 
+  updateUseColor(0);
+  updateMaterial(vertexPool['Sphere'][2]);
   drawSphere();
 
   ModelMatrix = popMatrix();
 
+
+  if (applyColorOnBody) {
+    updateUseColor(1);
+  } else {
+    updateUseColor(0);
+  }
 
 
   ModelMatrix = popMatrix();
@@ -68,12 +83,15 @@ function drawObjects() {
   // Use gl.cullFace(gl.FRONT_AND_BACK) would cause the whole shape to disappear
   // :)
 
-
   gl.enable(gl.CULL_FACE);
   gl.cullFace(gl.FRONT);
+
+  updateMaterial(18);
   drawDog();   // Draw all parts
 
+
   gl.disable(gl.CULL_FACE);
+  updateMaterial(20);
   drawHuman();
 
   // gl.cullFace(gl.BACK);

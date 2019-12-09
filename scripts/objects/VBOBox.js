@@ -85,14 +85,6 @@
 // Vertex shader program
 //=============================================================================
 
-// global vars that contain the values we send thru those uniforms,
-//  ... for our camera:
-var eyePosWorld = new Float32Array(3);  // x,y,z in world coords
-
-// ... for our first material:
-var matlSel = MATL_RED_PLASTIC;        // see keypress(): 'm' key changes matlSel
-var matl0 = new Material(matlSel);  
-//  ... for our first light source:   (stays false if never initialized)
 
 var shaders = new shaderLib();
 
@@ -327,6 +319,7 @@ VBObox.prototype.switchToMe = function () {
   }
 
   this.uLoc_useColor = gl.getUniformLocation(gl.program, 'u_useColor');
+  this.uLoc_materialID = gl.getUniformLocation(gl.program, 'u_materialID');
 
   //  ... for Phong light source:
   // NEW!  Note we're getting the location of a GLSL struct array member:
@@ -413,40 +406,10 @@ VBObox.prototype.draw = function() {
     gl.uniform3fv(lightSource[i].u_spec, lightSource[i].I_spec.elements);   // Specular
   }
 
-  //---------------For the Material object(s):
-  gl.uniform3fv(matl0.uLoc_Ke, matl0.K_emit.slice(0,3));        // Ke emissive
-  gl.uniform3fv(matl0.uLoc_Ka, matl0.K_ambi.slice(0,3));        // Ka ambient
-  gl.uniform3fv(matl0.uLoc_Kd, matl0.K_diff.slice(0,3));        // Kd diffuse
-  gl.uniform3fv(matl0.uLoc_Ks, matl0.K_spec.slice(0,3));        // Ks specular
-  gl.uniform1i(matl0.uLoc_Kshiny, parseInt(matl0.K_shiny, 10));     // Kshiny 
-
-  this.useColor = 1;
-  gl.uniform1i(this.uLoc_useColor, this.useColor);
-
   gl.enable(gl.CULL_FACE);
   gl.cullFace(gl.BACK);
 
   drawAll();
-  
-  // var tmatrix = new Matrix4()
-  // tmatrix.setTranslate(0, 0, 0.25); // 'set' means DISCARD old matrix,
-  //             // (drawing axes centered in CVV), and then make new
-  //             // drawing axes moved to the lower-left corner of CVV.
-  // tmatrix.scale(0.25, 0.25, 0.25);
-
-  // updateModelMatrix(tmatrix);
-
-  // gl.drawArrays(gl.TRIANGLE_STRIP,        // use this drawing primitive, and
-  //               0, // start at this vertex number, and 
-  //               240); // draw this many vertices.
-  
-      // Draw just the sphere's vertices
-  // gl.drawArrays(gl.TRIANGLE_STRIP,        // use this drawing primitive, and
-  //               0, // start at this vertex number, and 
-  //               this.vboVerts); // draw this many vertices.
-
-  // Usage: void gl.drawElements(mode, count, type, offset);
-  // gl.drawElements(gl.TRIANGLES, this.elementLen, gl.UNSIGNED_SHORT, 0);
 
 }
 
@@ -498,6 +461,7 @@ VBObox.prototype.empty = function() {
 // }
 
 function updateModelMatrix(modelMatrix) {
+
   if (curVBOBox === undefined) {
     console.log('curVBOBox doesn\'t exist!');
   }
@@ -517,5 +481,37 @@ function updateModelMatrix(modelMatrix) {
   gl.uniformMatrix4fv(curVBOBox.uLoc_ModelMatrix, false, modelMatrix.elements);
   gl.uniformMatrix4fv(curVBOBox.uLoc_MvpMatrix, false, mvpMatrix.elements);
   gl.uniformMatrix4fv(curVBOBox.uLoc_NormalMatrix, false, normalMatrix.elements);
+
+}
+
+
+function updateMaterial(materialID) {
+  
+  if (curVBOBox === undefined) {
+    console.log('curVBOBox doesn\'t exist!');
+  }
+
+  // console.log(materialSource[materialID]);
+  // matl0.setMatl(materialID);
+
+    //---------------For the Material object(s):
+  gl.uniform3fv(matl0.uLoc_Ke, materialSource[materialID].K_emit.slice(0,3));        // Ke emissive
+  gl.uniform3fv(matl0.uLoc_Ka, materialSource[materialID].K_ambi.slice(0,3));        // Ka ambient
+  gl.uniform3fv(matl0.uLoc_Kd, materialSource[materialID].K_diff.slice(0,3));        // Kd diffuse
+  gl.uniform3fv(matl0.uLoc_Ks, materialSource[materialID].K_spec.slice(0,3));        // Ks specular
+  gl.uniform1i(matl0.uLoc_Kshiny, parseInt(materialSource[materialID].K_shiny, 10));     // Kshiny 
+
+}
+
+
+function updateUseColor(useColor) {
+  
+  if (curVBOBox === undefined) {
+    console.log('curVBOBox doesn\'t exist!');
+  }
+
+  // console.log(curVBOBox, curVBOBox.uLoc_useColor);
+
+  gl.uniform1i(curVBOBox.uLoc_useColor, useColor);
 
 }

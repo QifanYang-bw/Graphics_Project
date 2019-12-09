@@ -33,18 +33,18 @@ function makeAll() {
 
 const cubeSeq = [0, 1, 3, 2, 2, 6, 3, 7, 0, 4, 1, 5, 2, 6, 6, 5, 7, 4];
 
-function appendCube(name, posArr, colorArr){
+function appendCube(name, posArr, colorArr, materialID = 1){
 
   var i, j;
   var vboOutput = [];
 
   for (i = 0; i < colorArr.length; i++) {
-    console.log('Before:', colorArr[i]);
+    // console.log('Before:', colorArr[i]);
     for (j = 0; j < 3; j++) {
       colorArr[i][j] = colorArr[i][j] * colorArr[i][3] + (1 - colorArr[i][3]);
     }
     colorArr[i][3] = 1.0;
-    console.log('After:', colorArr[i]);
+    // console.log('After:', colorArr[i]);
   }
 
   for (i = 0; i < cubeSeq.length; i++) {
@@ -55,17 +55,17 @@ function appendCube(name, posArr, colorArr){
     vboOutput = vboOutput.concat(colorArr[cubeSeq[i]]);
   };
 
-  appendObject(name, vboOutput);
+  appendObject(name, vboOutput, materialID);
 
 }
 
-function appendObject(name, vboArr){
+function appendObject(name, vboArr, materialID = 1){
 
   var vertexLen = Math.floor(vboArr.length / g_floatsPerVertex);
 
   vboVerts = ArrayConcat(vboVerts, vboArr)
 
-  vertexPool[name] = [curVertexLength, vertexLen];
+  vertexPool[name] = [curVertexLength, vertexLen, materialID];
   curVertexLength += vertexLen;
 
   // console.log(curVertexLength);

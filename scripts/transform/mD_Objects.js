@@ -105,6 +105,7 @@ function drawDrone() {
       angle = (angle + 90) % 360;
 
       updateModelMatrix(ModelMatrix);
+      updateMaterial(vertexPool['dronConn1'][2]);
 
       gl.cullFace(gl.FRONT);
       gl.drawArrays(gl.TRIANGLE_STRIP, 
@@ -124,6 +125,8 @@ function drawDrone() {
   ModelMatrix.rotate(180, 1, 0, 0);
 
   updateModelMatrix(ModelMatrix);
+  updateMaterial(vertexPool['Pillar1'][2]);
+  updateUseColor(0);
 
   gl.enable(gl.CULL_FACE);
   gl.cullFace(gl.BACK);
@@ -134,6 +137,7 @@ function drawDrone() {
 
   ModelMatrix = popMatrix();
 
+  updateUseColor(1);
   clearMatrix(originalMatrixDepth);
 }
 
@@ -146,6 +150,7 @@ function drawPropeller(angle) {
 
   ModelMatrix.scale(2, 2, 0.4);
   updateModelMatrix(ModelMatrix);
+  updateMaterial(vertexPool['Ring'][2]);
 
   gl.enable(gl.CULL_FACE);
   gl.cullFace(gl.FRONT);

@@ -78,10 +78,23 @@ var gl;													// WebGL rendering context -- the 'webGL' object
 var g_canvas;									// HTML-5 'canvas' element ID#
 
 var lightSource = [];
-var lightSourceCount = 2;
+var lightSourceCount;
 
 // For multiple VBOs & Shaders:-----------------
 var worldBox, part1Box, part2Box, part3Box, part4Box;
+
+// global vars that contain the values we send thru those uniforms,
+//  ... for our camera:
+var eyePosWorld = new Float32Array(3);  // x,y,z in world coords
+
+// ... for our first material:
+var matlSel = MATL_RED_PLASTIC;        // see keypress(): 'm' key changes matlSel
+
+var matl0 = new Material();  
+
+//  ... for our light source:   (stays false if never initialized)
+var materialSource = [];
+var materialSourceCount;
 
 //----------------------------- Animation ----------------------------
 var g_isRun = true;                 // run/stop for animation; used in tick().
@@ -132,9 +145,9 @@ function canvasInit() {
   
   makeAll();
 
-  // Set up Light sources before all VBO Boxes
+  // Set up Light sources & materials before all VBO Boxes
   setLights();
-
+  setMaterials();
 
   worldBox = new VBObox0();     // Holds VBO & shaders for 3D 'world' ground-plane grid, etc;
   part1Box = new VBObox(1, VertexShaderEnum.Phong, FragmentShaderEnum.Phong);
@@ -149,6 +162,36 @@ function canvasInit() {
   part2Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
   part3Box.init(gl);    //  "   "   "  for 1st kind of shading & lighting
   part4Box.init(gl);    //  "   "   "  for 2nd kind of shading & lighting
+}
+
+function setLights() {
+  lightSourceCount = 2;
+  
+  for (var i = 0; i < lightSourceCount; i++) {
+    lightSource[i] = new LightsT(); 
+  } 
+
+  // Init World position, colors of light source in global vars;
+  lightSource[0].I_pos.elements.set( [6.0, 5.0, 5.0]);
+  lightSource[0].I_ambi.elements.set([0.4, 0.4, 0.4]);
+  lightSource[0].I_diff.elements.set([1.0, 1.0, 1.0]);
+  lightSource[0].I_spec.elements.set([1.0, 1.0, 1.0]);
+
+  lightSource[1].I_pos.elements.set([-3.0, -5.0, -2.0]);
+  lightSource[1].I_ambi.elements.set([0.2, 0.2, 0.2]);
+  lightSource[1].I_diff.elements.set([0.6, 0.6, 0.6]);
+  lightSource[1].I_spec.elements.set([0.8, 0.8, 0.8]);
+}
+
+
+function setMaterials() {
+
+  materialSourceCount = 23;
+
+  for (var i = 0; i <= materialSourceCount; i++) {
+    materialSource[i] = new Material(i); 
+  } 
+  // console.log(materialSource);
 }
 
 function main() {
@@ -216,107 +259,6 @@ function main() {
   //------------------------------------
   tick();                       // do it again!
 }
-
-function setLights() {
-  for (var i = 0; i < lightSourceCount; i++) {
-    lightSource[i] = new LightsT(); 
-  } 
-
-  // Init World position, colors of light source in global vars;
-  lightSource[0].I_pos.elements.set( [6.0, 5.0, 5.0]);
-  lightSource[0].I_ambi.elements.set([0.4, 0.4, 0.4]);
-  lightSource[0].I_diff.elements.set([1.0, 1.0, 1.0]);
-  lightSource[0].I_spec.elements.set([1.0, 1.0, 1.0]);
-
-  lightSource[1].I_pos.elements.set([-3.0, -5.0, -2.0]);
-  lightSource[1].I_ambi.elements.set([0.2, 0.2, 0.2]);
-  lightSource[1].I_diff.elements.set([0.6, 0.6, 0.6]);
-  lightSource[1].I_spec.elements.set([0.8, 0.8, 0.8]);
-}
-
-// function timerAll() {
-// //=============================================================================
-// // Find new values for all time-varying parameters used for on-screen drawing
-//   // use local variables to find the elapsed time.
-//   var nowMS = Date.now();             // current time (in milliseconds)
-//   var elapsedMS = nowMS - g_last;   // 
-//   g_last = nowMS;                   // update for next webGL drawing.
-//   if(elapsedMS > 1000.0) {            
-//     // Browsers won't re-draw 'canvas' element that isn't visible on-screen 
-//     // (user chose a different browser tab, etc.); when users make the browser
-//     // window visible again our resulting 'elapsedMS' value has gotten HUGE.
-//     // Instead of allowing a HUGE change in all our time-dependent parameters,
-//     // let's pretend that only a nominal 1/30th second passed:
-//     elapsedMS = 1000.0/30.0;
-//     }
-
-
-//   // Find new time-dependent parameters using the current or elapsed time:
-//   // Continuous rotation:
-//   // g_angleNow0 = g_angleNow0 + (g_angleRate0 * elapsedMS) / 1000.0;
-//   g_angleNow1 = g_angleNow1 + (g_angleRate1 * elapsedMS) / 4000.0;
-//   g_angleNow2 = g_angleNow2 + (g_angleRate2 * elapsedMS) / 3000.0;
-//   // g_angleNow0 %= 360.0;   // keep angle >=0.0 and <360.0 degrees  
-//   // g_angleNow1 %= 360.0;   
-//   // g_angleNow2 %= 360.0;
-//   // if(g_angleNow1 > g_angleMax1) { // above the max?
-//   //   g_angleNow1 = g_angleMax1;    // move back down to the max, and
-//   //   g_angleRate1 = -g_angleRate1; // reverse direction of change.
-//   //   }
-//   // else if(g_angleNow1 < g_angleMin1) {  // below the min?
-//   //   g_angleNow1 = g_angleMin1;    // move back up to the min, and
-//   //   g_angleRate1 = -g_angleRate1;
-//   //   }
-//   // Continuous movement:
-//   // g_posNow0 += g_posRate0 * elapsedMS / 1000.0;
-//   // g_posNow1 += g_posRate1 * elapsedMS / 1000.0;
-//   // // apply position limits
-//   // if(g_posNow0 > g_posMax0) {   // above the max?
-//   //   g_posNow0 = g_posMax0;      // move back down to the max, and
-//   //   g_posRate0 = -g_posRate0;   // reverse direction of change
-//   //   }
-//   // else if(g_posNow0 < g_posMin0) {  // or below the min? 
-//   //   g_posNow0 = g_posMin0;      // move back up to the min, and
-//   //   g_posRate0 = -g_posRate0;   // reverse direction of change.
-//   //   }
-//   // if(g_posNow1 > g_posMax1) {   // above the max?
-//   //   g_posNow1 = g_posMax1;      // move back down to the max, and
-//   //   g_posRate1 = -g_posRate1;   // reverse direction of change
-//   //   }
-//   // else if(g_posNow1 < g_posMin1) {  // or below the min? 
-//   //   g_posNow1 = g_posMin1;      // move back up to the min, and
-//   //   g_posRate1 = -g_posRate1;   // reverse direction of change.
-//   //   }
-
-// }
-
-
-// function animate(angle) {
-// //==============================================================================
-//   // Calculate the elapsed time
-//   var nowMS = Date.now();             // current time (in milliseconds)
-//   var elapsedMS = nowMS - g_last;   // 
-//   g_last = nowMS;                   // update for next webGL drawing.
-  
-//   if(elapsedMS > 1000.0) {            
-//     // Browsers won't re-draw 'canvas' element that isn't visible on-screen 
-//     // (user chose a different browser tab, etc.); when users make the browser
-//     // window visible again our resulting 'elapsedMS' value has gotten HUGE.
-//     // Instead of allowing a HUGE change in all our time-dependent parameters,
-//     // let's pretend that only a nominal 1/30th second passed:
-//     elapsedMS = 1000.0/30.0;
-//     }
-
-//   // Update the current rotation angle (adjusted by the elapsed time)
-//   //  limit the angle to move smoothly between +20 and -85 degrees:
-// //  if(angle >  120.0 && ANGLE_STEP > 0) ANGLE_STEP = -ANGLE_STEP;
-// //  if(angle < -120.0 && ANGLE_STEP < 0) ANGLE_STEP = -ANGLE_STEP;
-  
-//   var newAngle = angle + (ANGLE_STEP * elapsed) / 1000.0;
-//   return newAngle %= 360*3;   // keep angle finite; use 3*360 so that we can
-//                               // use multiples of angle/3 on different axes.
-// }
-
 
 function drawVBOBox() {
 //=============================================================================
@@ -662,9 +604,10 @@ function myKeyDown(kev) {
       
 
     case "KeyM":{
-      matlSel = (matlSel +1)%MATL_DEFAULT;  // see materials_Ayerdi.js for list
-      matl0.setMatl(matlSel);               // set new material reflectances,
-      // draw();                               // re-draw on-screen image.
+      matlSel = (matlSel +1) % MATL_DEFAULT;  // see materials_Ayerdi.js for list
+
+      vertexPool['Sphere'][2] = matlSel;
+
       break;
     }
     case "KeyX": {

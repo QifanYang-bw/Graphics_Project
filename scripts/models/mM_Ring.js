@@ -65,6 +65,6 @@ function makeRing() {
 
   // console.log(counter, (verticesPerDiv * ringDivs) * g_floatsPerPos);
 
-  appendObject('Ring', g_torAry);
+  appendObject('Ring', g_torAry, MATL_PEWTER);
 
 }

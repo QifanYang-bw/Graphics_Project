@@ -24,7 +24,7 @@ function makeDroneMisc() {
     [.65, .65, .65, 1.0],
   ];
 
-  appendCube('dronConn1', posArr, colorArr);
+  appendCube('dronConn1', posArr, colorArr, MATL_PEWTER);
 
   // console.log(vertexPool['dronConn1'][0]);
 

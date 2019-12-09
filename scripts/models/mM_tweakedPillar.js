@@ -186,5 +186,5 @@ function maketweakedPillar() {
     }
   }
 
-  appendObject('Pillar1', g_cylAry);
+  appendObject('Pillar1', g_cylAry, MATL_OBSIDIAN);
 }
